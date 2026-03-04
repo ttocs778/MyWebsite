@@ -1,11 +1,177 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Scott Tang – Home" showVideoBackground={true} videoSrc="" showFooter={false}>
+	<section class="hero">
+		<div class="hero-main">
+			<p class="eyebrow">Game & Graphics Engineer</p>
+			<h1>Hi! I&apos;m Scott Tang!</h1>
+			<p class="lede">
+				Games, codes, designs. The rest me is in <a href="/about" class="lede-link lede-about">
+					<span class="lede-about-icon" aria-hidden="true">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
+							<path d="M15 12h.01"></path>
+							<path d="M19.38 6.813A9 9 0 0 1 20.8 10.2a2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"></path>
+							<path d="M9 12h.01"></path>
+						</svg>
+					</span>
+					<span class="lede-about-label">About</span>
+				</a>.
+			</p>
+			<div class="contact-links" aria-label="Contact links">
+				<a href="https://www.instagram.com/ruiscott_39/" class="contact-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+				</a>
+				<a href="https://github.com/ttocs778" class="contact-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+				</a>
+				<a href="https://www.linkedin.com/in/scott-tang-gl/" class="contact-link" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+				</a>
+			</div>
+		</div>
+	</section>
+
+	<style>
+		.hero {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 1.75rem;
+			max-width: 640px;
+		}
+
+		.hero-main {
+			display: grid;
+			grid-template-areas:
+				'eyebrow'
+				'title'
+				'lede'
+				'contacts';
+			row-gap: 0.5rem;
+			width: 100%;
+		}
+
+		.eyebrow {
+			grid-area: eyebrow;
+			justify-self: center;
+			text-align: center;
+			margin: 0;
+			padding: 0;
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.18em;
+			color: #a1a1aa;
+		}
+
+		h1 {
+			grid-area: title;
+			margin: 0;
+			padding: 0;
+			font-size: clamp(2.2rem, 4vw, 2.8rem);
+			letter-spacing: 0.03em;
+		}
+
+		h1::first-letter {
+			margin-left: 0;
+		}
+
+		.contact-links {
+			grid-area: contacts;
+			justify-self: center;
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			margin: 0;
+			padding: 0;
+		}
+
+		.contact-link {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			border-radius: 10px;
+			color: #a1a1aa;
+			transition: color 0.2s ease, transform 0.2s ease;
+		}
+
+		.contact-link:hover {
+			color: #fafafa;
+			transform: translateY(-2px);
+		}
+
+		.contact-link svg {
+			width: 22px;
+			height: 22px;
+			fill: none;
+			stroke: currentColor;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+
+		.lede {
+			grid-area: lede;
+			margin: 0 0 0 0.3rem;
+			padding: 0;
+			color: #d4d4d8;
+			font-size: 1.1rem;
+			line-height: 1.4;
+			max-width: 44rem;
+		}
+
+		.lede-link {
+			color: #a1a1aa;
+			text-decoration: none;
+			border-bottom: 1px solid rgba(161, 161, 170, 0.5);
+			transition: color 0.2s, border-color 0.2s;
+		}
+
+		.lede-link:hover {
+			color: #fafafa;
+			border-bottom-color: #fafafa;
+		}
+
+		.lede-about {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.35rem;
+			vertical-align: middle;
+			border-bottom: none;
+			font-weight: 700;
+		}
+
+		.lede-about:hover {
+			border-bottom: none;
+		}
+
+		.lede-about-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 1em;
+			height: 1em;
+			transform: translateY(-0.04em);
+		}
+
+		.lede-about-icon svg {
+			width: 100%;
+			height: 100%;
+			fill: none;
+			stroke: currentColor;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+
+		@media (max-width: 640px) {
+			.hero {
+				max-width: 100%;
+			}
+		}
+	</style>
 </Layout>
