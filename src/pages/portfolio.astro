@@ -1,5 +1,53 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const projects = [
+	{
+		title: 'CUDA Path Tracer',
+		date: 'October 2025',
+		tech: ['OpenGL', 'C++', 'CUDA'],
+		description:
+			'Renders diffuse materials and dielectrics with stochastic sampling and depth of field. Supports glTF mesh loading and intersection culling via stackless BVH traversal.',
+		image: '',
+		href: '/portfolio/cuda-path-tracer',
+	},
+	{
+		title: 'Catanks',
+		date: 'July 2024 – September 2025',
+		tech: ['HLSL', 'C#', 'Unity'],
+		description:
+			'An action adventure tank shooter. With cats. As a project lead, I managed ~30 team members and was mainly involved in the design and art direction.',
+		image: '',
+		href: '/portfolio/catanks',
+	},
+	{
+		title: 'Mini Minecraft',
+		date: 'November 2023',
+		tech: ['GLSL', 'OpenGL', 'C++'],
+		description:
+			'Built in a team of three. I was responsible for functionality related to chunking, block rendering, multiple gameplay systems, and UI.',
+		image: '',
+		href: '/portfolio/mini-minecraft',
+	},
+	{
+		title: 'DOOR',
+		date: 'November 2024',
+		tech: ['Shader Graph', 'HLSL', 'Unity'],
+		description:
+			'To learn more about URP features like postprocessing and scriptable Renderer Features, I made this little scene inspired by OMORI.',
+		image: '',
+		href: '/portfolio/door',
+	},
+	{
+		title: 'WebGPU Clustered Rendering',
+		date: 'October 2025',
+		tech: ['glTF', 'WGSL', 'WebGPU'],
+		description:
+			'Grouping lights into view space clusters dramatically speeds up shading computations in Forward+ and deferred pipelines.',
+		image: '',
+		href: '/portfolio/webgpu-clustered-rendering',
+	},
+];
 ---
 
 <Layout title="Rui (Scott) Tang – Portfolio">
@@ -8,7 +56,33 @@ import Layout from '../layouts/Layout.astro';
 			<div class="page-title-left">
 				<h1>Portfolio</h1>
 			</div>
-			<p class="page-title-caption">just test</p>
+			<p class="page-title-caption">
+				Write-ups and technical breakdowns for some of my favorite projects.
+			</p>
+		</div>
+
+		<div class="portfolio-grid">
+			{projects.map((project) => (
+				<a href={project.href} class="portfolio-card">
+					<div class="card-image-wrap">
+						{project.image ? (
+							<img src={project.image} alt="" class="card-image" />
+						) : (
+							<div class="card-image-placeholder" aria-hidden="true" />
+						)}
+					</div>
+					<div class="card-body">
+						<h2 class="card-title">{project.title}</h2>
+						<p class="card-date">{project.date}</p>
+						<ul class="card-tech-list" aria-label="Technologies">
+							{project.tech.map((t) => (
+								<li>{t}</li>
+							))}
+						</ul>
+						<p class="card-description">{project.description}</p>
+					</div>
+				</a>
+			))}
 		</div>
 	</section>
 
@@ -16,18 +90,19 @@ import Layout from '../layouts/Layout.astro';
 		.page {
 			display: flex;
 			flex-direction: column;
-			gap: 0.75rem;
+			gap: 2rem;
 		}
 
 		h1 {
 			margin: 0 0 0.25rem;
 			font-size: 1.6rem;
-			letter-spacing: 0.06em;
+			letter-spacing: 0.001em;
 		}
 
 		.page-title-row h1 {
 			margin: 0;
 			font-size: 2.8rem;
+			line-height: 1.2;
 			text-transform: none;
 		}
 
@@ -36,6 +111,100 @@ import Layout from '../layouts/Layout.astro';
 			font-size: 1.05rem;
 			line-height: 1.7;
 		}
+
+		.portfolio-grid {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 3rem 3.5rem;
+			/* Same width as title row and footer bar */
+			width: min(70rem, calc(0.65 * (100vw - 3.5rem)));
+			max-width: 70rem;
+		}
+
+		.portfolio-card {
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			text-decoration: none;
+			color: inherit;
+			border-radius: 12px;
+			transition: opacity 0.2s, transform 0.2s;
+		}
+
+		.portfolio-card:hover {
+			opacity: 0.92;
+		}
+
+		.card-image-wrap {
+			width: 100%;
+			aspect-ratio: 16 / 9;
+			border-radius: 12px;
+			overflow: hidden;
+			background: rgba(255, 255, 255, 0.04);
+			margin-bottom: 0.75rem;
+		}
+
+		.card-image,
+		.card-image-placeholder {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.card-image-placeholder {
+			display: block;
+			background: rgba(161, 161, 170, 0.12);
+		}
+
+		.card-body {
+			display: flex;
+			flex-direction: column;
+			gap: 0.25rem;
+		}
+
+		.card-title {
+			margin: 0;
+			font-size: 1.25rem;
+			font-weight: 700;
+			letter-spacing: 0.02em;
+			color: #fafafa;
+		}
+
+		.card-date {
+			font-size: 1rem;
+			color: rgba(255, 255, 255, 0.6);
+		}
+
+		.card-tech-list {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0 0.75rem;
+			font-size: 0.95rem;
+			color: #a5b4fc;
+			letter-spacing: 0.02em;
+		}
+
+		.card-tech-list li + li::before {
+			content: '·';
+			margin-right: 0.75rem;
+			color: rgba(165, 180, 252, 0.6);
+		}
+
+		.card-description {
+			margin: 0.3rem 0 0;
+			font-size: 1.05rem;
+			line-height: 1.65;
+			color: rgba(255, 255, 255, 0.8);
+		}
+
+		@media (max-width: 900px) {
+			.portfolio-grid {
+				grid-template-columns: 1fr;
+				gap: 3rem;
+			}
+		}
 	</style>
 </Layout>
-
