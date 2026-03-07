@@ -16,7 +16,7 @@ It hosts my projects, notes, and about page, with a custom layout and animations
 ---
 
 ## Updates (2026-03-06 18:09)
-
+Add About page - main work
 ### Home
 - Video background with overlay; slate/premium palette aligned with other pages.
 
