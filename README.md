@@ -1,4 +1,4 @@
-# Scott Tang – Personal Site
+# Dev Blog for my Website
 
 This is my personal website and portfolio, built with **Astro**.  
 It hosts my projects, notes, and about page, with a custom layout and animations.
