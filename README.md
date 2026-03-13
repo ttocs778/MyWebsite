@@ -46,7 +46,6 @@ Add several projects' description under portfolio page
 
 ### Portfolio
 - Split `portfolio` into 3 sections with the same card style: **Game & Graphics Projects**, **Full-Stack Web Projects**, and **Analog & Board Game Design**.
-- Added section titles and adjusted spacing so section-title-to-grid spacing matches project vertical spacing.
 - Updated heading hierarchy per preference: section titles use `h1`, card titles use `h2`.
 - Refined section title style for readability (centered, softened color, subtle accent line).
 
