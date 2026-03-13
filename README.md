@@ -41,3 +41,24 @@ Add About page - main work
 ### Env / config
 - **Steam**: `STEAM_API_KEY`, `STEAM_ID` in `.env` (or Vercel). Get key from [Steam Web API Key](https://steamcommunity.com/dev/apikey).
 
+## Updates (2026-03-13 1:43)
+Add several projects' description under portfolio page
+
+### Portfolio
+- Split `portfolio` into 3 sections with the same card style: **Game & Graphics Projects**, **Full-Stack Web Projects**, and **Analog & Board Game Design**.
+- Added section titles and adjusted spacing so section-title-to-grid spacing matches project vertical spacing.
+- Updated heading hierarchy per preference: section titles use `h1`, card titles use `h2`.
+- Refined section title style for readability (centered, softened color, subtle accent line).
+
+### About / Gaming
+- Added a short line under **Gaming** heading: “Feel free to add me and let’s play together.” and matched its typography with regular body text.
+- Updated Steam recent-played logic to show only **one** most recent game (`count=1` in API + frontend safeguard with `slice(0, 1)`), previous design will upload 5 recent played games into the box, make it pretty long.
+
+### Global UI / Interaction
+- Added desktop image zoom lightbox using native `<dialog>`:
+  - Click image to open zoom; click again/backdrop or press `Esc` to close.
+  - Supports opt-out with `data-no-zoom`.
+- Removed close button from zoom dialog and switched to cursor-based interaction (`zoom-in` before open, `zoom-out` while open).
+- Prevented page layout shift during zoom by reserving scrollbar gutter and locking/unlocking body scroll on open/close.
+
+

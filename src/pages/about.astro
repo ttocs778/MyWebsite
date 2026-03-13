@@ -3,14 +3,175 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Rui (Scott) Tang – About">
-	<section class="page">
+	<section class="page about-page">
 		<div class="page-title-row">
 			<div class="page-title-left">
 				<h1>About</h1>
 			</div>
-			<p class="page-title-caption">just test</p>
+			
+		</div>
+
+		<div class="about-content">
+			<div class="about-text">
+				<!-- About / Education + Experience -->
+				<div class="about-section about-intro">
+					<div class="about-col">
+						<p>I'm Scott!, a senior studying <strong>Computer Science (Games)</strong> at the <span class="usc">University of Southern California</span> and plan to pursue graduate study.</p>
+						<p>At <span class="usc">USC</span>, I engaged in the <strong>game community</strong> actively and spent years with Chinese Students and Scholars Association<strong>(CSSA)</strong>, helping Chinese students feel at home on campus.</p>
+					</div>
+					<span class="intro-deco-icon" aria-hidden="true">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
+					</span>
+					<div class="about-col">
+						<p>Last summer, I interned at <strong>ByteDance</strong>, where I developed tools connecting Unity and an internal engine. Before that, I was at NetEase Games as game designer. Here is my <a href="/about/Scott-Tang-resume.pdf" class="about-link">resume</a>.</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Image gallery: between intro and interests (3 photos, square crop = trim) -->
+			<div class="about-gallery" aria-label="Photos">
+				<div class="about-gallery-item">
+					<img src="/about/photo-1.jpg" alt="At a cafe with a birdcage" width="400" height="400" />
+				</div>
+				<div class="about-gallery-item">
+					<img src="/about/photo-2.jpg" alt="With friends outdoors" width="400" height="400" />
+				</div>
+				<div class="about-gallery-item">
+					<img src="/about/photo-3.jpg" alt="In front of Manhattan Bridge" width="400" height="400" />
+				</div>
+			</div>
+
+			<div class="about-text">
+				<!-- Interests -->
+				<div class="about-section about-interests">
+				<div class="about-col">
+					<p>I'm especially fascinated by how rendering, engine systems, and gameplay logic come together to create game worlds. Ever since I was young, I've had a habit of pulling things apart just to understand how they work, and that curiosity still drives most of what I do.</p>
+				</div>
+				<div class="about-col">
+					<p>In my spare time, I enjoy single-player games, especially the quiet process of figuring out systems and experiencing the story. I'm also a huge soccer fan — <strong><span class="visca">Visca</span> <span class="barca">Barça</span></strong>! When I'm not behind a screen you'll probably find me at the gym.</p>
+				</div>
+			</div>
+
+			<!-- Contact -->
+			<div class="about-section about-contact">
+				<h2 class="about-heading">Contact</h2>
+				<p>I'm always happy to hear from new people. Feel free to reach out and say hello!</p>
+				<p>You can find me on <a href="https://www.instagram.com/ruiscott_39/" class="about-link" target="_blank" rel="noopener noreferrer">Instagram</a>, <a href="https://www.linkedin.com/in/scott-tang-gl/" class="about-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>, and <a href="https://github.com/ttocs778" class="about-link" target="_blank" rel="noopener noreferrer">GitHub</a>. Or contact me directly via <strong>Email</strong>, <strong>Phone</strong>, or <strong>WeChat</strong>.</p>
+				<p>
+					Email: <span class="inline-code">ruitang591@gmail.com</span><br />
+					Phone: <span class="inline-code">747-222-0001</span><br />
+					WeChat ID: <span class="inline-code">ruiscott_39</span>
+				</p>
+			</div>
+
+			<!-- Gaming: Steam, PSN, Battle.net -->
+			<div class="about-section about-gaming">
+				<h2 class="about-heading about-gaming-heading">Gaming</h2>
+				<p class="about-gaming-subtitle">Let's play together!</p>
+				<div class="about-gaming-grid">
+					<!-- Steam -->
+					<div class="about-gaming-panel about-gaming-panel--steam">
+						<h3 class="about-gaming-platform-name">Steam</h3>
+						<span class="about-gaming-panel-label">Recently played</span>
+						<div id="steam-recent-list" class="about-gaming-recent-list" aria-live="polite">
+							<span class="about-gaming-recent-placeholder">—</span>
+						</div>
+						<a href="https://steamcommunity.com/id/Scottisidiot" class="about-gaming-cta about-gaming-cta--steam" target="_blank" rel="noopener noreferrer">Add me on Steam</a>
+					</div>
+					<!-- PlayStation: replace href with your PSN profile URL if you have one -->
+					<div class="about-gaming-panel about-gaming-panel--psn">
+						<h3 class="about-gaming-platform-name">PlayStation</h3>
+						<span class="about-gaming-panel-label">Recently played</span>
+						<div class="about-gaming-recent-list">
+							<span class="about-gaming-recent-placeholder">—</span>
+						</div>
+						<a href="https://my.playstation.com/profile/ReplaceWithYourPSNID" class="about-gaming-cta about-gaming-cta--psn" target="_blank" rel="noopener noreferrer">Add me on PlayStation</a>
+					</div>
+					<!-- Battle.net: static recently played list -->
+					<div class="about-gaming-panel about-gaming-panel--battlenet">
+						<h3 class="about-gaming-platform-name">Battle.net</h3>
+						<span class="about-gaming-panel-label">Recently played</span>
+						<div class="about-gaming-recent-list">
+							<a href="https://overwatch.blizzard.com/en-us/" class="about-gaming-game" target="_blank" rel="noopener noreferrer" aria-label="View Overwatch">
+								<span class="about-gaming-game-icon" aria-hidden="true">
+									<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
+								</span>
+								<div class="about-gaming-game-text">
+									<span class="about-gaming-game-name">Overwatch</span>
+									<span class="about-gaming-game-stats">600 hrs total</span>
+								</div>
+							</a>
+						</div>
+						<button type="button" class="about-gaming-cta about-gaming-cta--battlenet about-gaming-cta--copy" data-battletag="SORU#31904">Copy my Battle.net id</button>
+					</div>
+				</div>
+			</div>
+			</div>
 		</div>
 	</section>
+
+	<script>
+		(async () => {
+			const container = document.getElementById('steam-recent-list');
+			if (!container) return;
+			const placeholder = container.querySelector('.about-gaming-recent-placeholder');
+			try {
+				const res = await fetch('/api/steam-recent');
+				const { games } = await res.json();
+				if (games && games.length > 0) {
+					if (placeholder) placeholder.remove();
+					const oneGame = games.slice(0, 1);
+					container.append(
+						...oneGame.map((g) => {
+							const link = document.createElement('a');
+							link.href = `https://store.steampowered.com/app/${g.appid}`;
+							link.target = '_blank';
+							link.rel = 'noopener noreferrer';
+							link.className = 'about-gaming-game';
+							link.setAttribute('aria-label', `View ${g.name} on Steam`);
+							const icon = document.createElement('span');
+							icon.className = 'about-gaming-game-icon';
+							icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>';
+							const title = document.createElement('span');
+							title.className = 'about-gaming-game-name';
+							title.textContent = g.name;
+							const totalHrs = Math.round((g.playtime_forever || 0) / 60);
+							const stats = document.createElement('span');
+							stats.className = 'about-gaming-game-stats';
+							stats.textContent = `${totalHrs} hrs total`;
+							const textBlock = document.createElement('div');
+							textBlock.className = 'about-gaming-game-text';
+							textBlock.appendChild(title);
+							textBlock.appendChild(stats);
+							link.appendChild(icon);
+							link.appendChild(textBlock);
+							return link;
+						})
+					);
+				} else {
+					if (placeholder) placeholder.textContent = 'Nothing in the last 2 weeks';
+				}
+			} catch {
+				if (placeholder) placeholder.textContent = '—';
+			}
+		})();
+
+		// Copy Battle.net id button
+		document.querySelectorAll('.about-gaming-cta--copy').forEach((btn) => {
+			btn.addEventListener('click', async () => {
+				const tag = btn.getAttribute('data-battletag') || '';
+				try {
+					await navigator.clipboard.writeText(tag);
+					const orig = btn.textContent;
+					btn.textContent = 'Copied!';
+					setTimeout(() => { btn.textContent = orig; }, 1500);
+				} catch {
+					btn.textContent = 'Copy failed';
+					setTimeout(() => { btn.textContent = 'Copy my Battle.net id'; }, 1500);
+				}
+			});
+		});
+	</script>
 
 	<style>
 		.page {
@@ -27,16 +188,511 @@ import Layout from '../layouts/Layout.astro';
 
 		.page-title-row h1 {
 			margin: 0;
-			font-size:  2.8rem;
+			font-size: 3.4rem;
 			line-height: 1.2;
 			text-transform: none;
 		}
 
 		p {
 			margin: 0;
-			font-size: 1.05rem;
+			font-size: 1rem;
 			line-height: 1.7;
+		}
+
+		.about-content {
+			display: flex;
+			flex-direction: column;
+			gap: 2.5rem;
+			align-items: center;
+			text-align: left;
+		}
+
+		.about-text {
+			width: min(50rem, calc(0.65 * (100vw - 3.5rem)));
+			max-width: 50rem;
+			margin-inline: auto;
+			display: flex;
+			flex-direction: column;
+			gap: 2.5rem;
+		}
+
+		.about-text .about-section {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem 3rem;
+			align-items: start;
+		}
+
+		.about-text .about-section.about-contact,
+		.about-text .about-section.about-music,
+		.about-text .about-section.about-gaming {
+			display: block;
+		}
+
+		/* Intro: right column aligns with second left paragraph */
+		.about-section.about-intro {
+			position: relative;
+			overflow: visible;
+			grid-template-rows: auto auto;
+		}
+		.about-section.about-intro .about-col:first-child {
+			grid-row: 1 / 3;
+		}
+		.about-section.about-intro .about-col:last-child {
+			grid-column: 2;
+			grid-row: 2;
+			align-self: start;
+			margin-left: 0;
+		}
+
+		
+		.intro-deco-icon {
+			position: absolute;
+			top: -5rem;
+			right: 0rem;
+			width: 4rem;
+			height: 4rem;
+			pointer-events: none;
+			color: rgba(148, 163, 184, 0.35);
+			transform: scale(3) rotate(18deg);
+			transform-origin: top right;
+		}
+		.intro-deco-icon svg {
+			width: 100%;
+			height: 100%;
+			display: block;
+		}
+
+		.about-section.about-interests .about-col:last-child {
+			margin-left: 0;
+		}
+
+		.about-section {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem 3rem;
+			align-items: start;
+		}
+
+		.about-col p + p {
+			margin-top: 1rem;
+		}
+
+		.about-link {
+			color: #a5b4fc;
+			text-decoration: underline;
+			text-underline-offset: 0.2em;
+			transition: color 0.2s;
+		}
+
+		.about-link:hover {
+			color: #c7d2fe;
+		}
+
+		.visca {
+			color: #f87171;
+		}
+
+		.barca {
+			color: #60a5fa;
+		}
+
+		.usc {
+			color: #f87171;
+			font-weight: 700;
+		}
+
+		.about-gallery {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 2.5rem;
+			width: min(65rem, calc(0.65 * (100vw - 3.5rem)));
+			max-width: 65rem;
+			margin-inline: auto;
+		}
+
+		.about-gallery-item {
+			aspect-ratio: 3 / 4;
+			border-radius: 32px;
+			overflow: hidden;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			background: rgba(255, 255, 255, 0.04);
+		}
+
+		.about-gallery-item img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+
+		.about-contact,
+		.about-music {
+			display: block;
+			grid-template-columns: unset;
+		}
+
+		.about-heading {
+			margin: 0 0 0.75rem;
+			font-size: 1.25rem;
+			font-weight: 700;
+			letter-spacing: 0.02em;
+			color: #fafafa;
+		}
+
+		.about-contact p + p,
+		.about-music p + p,
+		.about-gaming p + p {
+			margin-top: 0rem;
+		}
+
+		.about-contact code,
+		.about-contact .inline-code {
+			font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+			font-size: 0.9em;
+			padding: 0.15em 0.4em;
+			border-radius: 6px;
+			background: rgba(148, 163, 184, 0.15);
+			color: #e2e8f0;
+		}
+
+		.about-gaming-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 1.5rem;
+			margin-top: 1rem;
+		}
+
+		.about-gaming-block {
+			display: flex;
+			flex-direction: column;
+			gap: 0.35rem;
+			padding: 1rem 1.25rem;
+			border-radius: 10px;
+			background: rgba(148, 163, 184, 0.1);
+			border: 1px solid rgba(148, 163, 184, 0.2);
+			text-decoration: none;
+			color: inherit;
+			transition: background 0.2s, border-color 0.2s;
+		}
+
+		.about-gaming-block:hover {
+			background: rgba(148, 163, 184, 0.18);
+			border-color: rgba(148, 163, 184, 0.35);
+		}
+
+		.about-gaming-label {
+			font-size: 0.8rem;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: #94a3b8;
+		}
+
+		.about-gaming-id {
+			font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+			font-size: 1rem;
+			color: #e2e8f0;
+		}
+
+		.about-steam-recent,
+		.about-gaming-recent-list {
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+			margin-top: 0.25rem;
+			margin-bottom: -0.25rem;
+		}
+
+		.about-steam-recent-placeholder,
+		.about-gaming-recent-placeholder {
+			color: #94a3b8;
+		}
+
+		/* Game row: whole block is the store link; icon + name + hours */
+		/* :global() so styles apply to JS-injected elements (Astro scopes by default) */
+		:global(.about-gaming-game) {
+			display: flex;
+			align-items: flex-start;
+			gap: 0.65rem;
+			padding: 0.55rem 0.9rem;
+			margin-bottom: 0.45rem;
+			border-radius: 10px;
+			background: rgba(30, 41, 59, 0.4);
+			border: 1px solid rgba(148, 163, 184, 0.1);
+			text-decoration: none;
+			color: inherit;
+			cursor: pointer;
+			transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+		}
+
+		:global(.about-gaming-game:hover) {
+			background: rgba(30, 41, 59, 0.7);
+			border-color: rgba(0, 111, 205, 0.45);
+			box-shadow: 0 0 20px rgba(0, 111, 205, 0.2);
+			transform: translateY(-2px);
+		}
+
+		:global(.about-gaming-game:last-child) {
+			margin-bottom: 0;
+		}
+
+		:global(.about-gaming-game-text) {
+			display: flex;
+			flex-direction: column;
+			gap: 0.25rem;
+			min-width: 0;
+			flex: 1;
+		}
+
+		:global(.about-gaming-game-name) {
+			display: block;
+			font-size: 0.95rem;
+			font-weight: 600;
+			color: #e2e8f0;
+			line-height: 1.3;
+		}
+
+		:global(.about-gaming-game-stats) {
+			display: block;
+			font-size: 0.78rem;
+			color: #64748b;
+			line-height: 1.4;
+			margin-top: 0.1rem;
+		}
+
+		:global(.about-gaming-game-icon) {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			margin-top: 0.2rem;
+			padding: 0.35rem;
+			color: #006FCD;
+			border-radius: 8px;
+			flex-shrink: 0;
+			transition: color 0.2s;
+		}
+
+		:global(.about-gaming-game:hover .about-gaming-game-icon) {
+			color: #38bdf8;
+		}
+
+		:global(.about-gaming-game-icon svg) {
+			display: block;
+		}
+
+		/* Static game row (no link) – same look, no hover lift/cursor */
+		:global(.about-gaming-game--static) {
+			cursor: default;
+			pointer-events: none;
+		}
+		:global(.about-gaming-game--static:hover) {
+			transform: none;
+			background: rgba(30, 41, 59, 0.4);
+			border-color: rgba(148, 163, 184, 0.1);
+			box-shadow: none;
+		}
+
+		/* CTAs: platform-colored */
+		.about-gaming-cta {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			margin-top: 1.25rem;
+			padding: 0.75rem 1.25rem;
+			font-size: 0.9rem;
+			font-weight: 600;
+			font-family: inherit;
+			color: #fff;
+			border: none;
+			border-radius: 8px;
+			text-decoration: none;
+			cursor: pointer;
+			transition: transform 0.2s, box-shadow 0.2s;
+		}
+
+		.about-gaming-cta:hover {
+			transform: translateY(-2px);
+		}
+
+		.about-gaming-cta--steam {
+			background: linear-gradient(135deg, #006FCD 0%, #005299 100%);
+			box-shadow: 0 4px 14px rgba(0, 111, 205, 0.4);
+		}
+		.about-gaming-cta--steam:hover {
+			box-shadow: 0 6px 20px rgba(0, 111, 205, 0.5);
+		}
+
+		.about-gaming-cta--psn {
+			background: linear-gradient(135deg, #006FCD 0%, #005299 100%);
+			box-shadow: 0 4px 14px rgba(0, 111, 205, 0.4);
+		}
+		.about-gaming-cta--psn:hover {
+			box-shadow: 0 6px 20px rgba(0, 111, 205, 0.5);
+		}
+
+		.about-gaming-cta--battlenet {
+			background: linear-gradient(135deg, #006FCD 0%, #005299 100%);
+			box-shadow: 0 4px 14px rgba(0, 111, 205, 0.4);
+		}
+		.about-gaming-cta--battlenet:hover {
+			box-shadow: 0 6px 20px rgba(0, 111, 205, 0.5);
+		}
+
+		.about-gaming-heading {
+			color: #f1f5f9;
+			margin-bottom: 0.75rem;
+		}
+
+		.about-gaming-subtitle {
+			margin: 0 0 1rem;
+			color: inherit;
+			font-size: 1rem;
+			line-height: 1.7;
+		}
+
+		.about-gaming-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 1.25rem;
+			width: 100%;
+			max-width: 56rem;
+			margin-inline: auto;
+		}
+
+		@media (max-width: 900px) {
+			.about-gaming-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		.about-gaming-intro {
+			color: #94a3b8;
+			font-size: 0.85rem;
+			margin-bottom: 0.25rem;
+		}
+
+		.about-gaming-platform-name {
+			font-size: 1.15rem;
+			font-weight: 700;
+			color: #f1f5f9;
+			margin: 0 0 0.25rem;
+			letter-spacing: 0.02em;
+		}
+
+		/* Platform panels: shared dark base + platform accent */
+		.about-gaming-panel {
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			padding: 1.5rem 1.25rem 1.5rem;
+			border-radius: 16px;
+			background: linear-gradient(180deg, rgba(18, 20, 26, 0.97) 0%, rgba(10, 12, 16, 0.98) 100%);
+			border: 1px solid rgba(148, 163, 184, 0.15);
+			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+		}
+
+		.about-gaming-panel::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 3px;
+			border-radius: 16px 16px 0 0;
+			opacity: 0.85;
+		}
+
+		.about-gaming-panel--steam::before {
+			background: linear-gradient(90deg, transparent 0%, #006FCD 50%, transparent 100%);
+		}
+		.about-gaming-panel--steam {
+			border-color: rgba(0, 111, 205, 0.25);
+		}
+
+		.about-gaming-panel--psn::before {
+			background: linear-gradient(90deg, transparent 0%, #006FCD 50%, transparent 100%);
+		}
+		.about-gaming-panel--psn {
+			border-color: rgba(0, 111, 205, 0.25);
+		}
+
+		.about-gaming-panel--battlenet::before {
+			background: linear-gradient(90deg, transparent 0%, #006FCD 50%, transparent 100%);
+		}
+		.about-gaming-panel--battlenet {
+			border-color: rgba(0, 111, 205, 0.25);
+		}
+
+		.about-gaming-panel-label {
+			display: block;
+			font-size: 0.7rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.12em;
+			margin-top: 0.75rem;
+			margin-bottom: 0.35rem;
+		}
+
+		.about-gaming-panel--steam .about-gaming-panel-label,
+		.about-gaming-panel--psn .about-gaming-panel-label,
+		.about-gaming-panel--battlenet .about-gaming-panel-label { color: #006FCD; }
+
+		.about-music-grid {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem 3rem;
+			align-items: start;
+			margin-top: 0.5rem;
+		}
+
+		.about-music-label {
+			font-size: 0.82rem;
+			color: rgba(255, 255, 255, 0.6);
+			margin-bottom: 0.5rem !important;
+		}
+
+		.about-music-now {
+			display: flex;
+			gap: 1rem;
+			align-items: center;
+		}
+
+		.about-music-art {
+			width: 64px;
+			height: 64px;
+			border-radius: 6px;
+			background: rgba(161, 161, 170, 0.2);
+			flex-shrink: 0;
+		}
+
+		.about-music-track {
+			margin-bottom: 0.2rem !important;
+		}
+
+		.about-music-meta {
+			font-size: 0.88rem;
+			color: rgba(255, 255, 255, 0.65) !important;
+		}
+
+		@media (max-width: 900px) {
+			.about-section {
+				grid-template-columns: 1fr;
+			}
+
+			.about-gallery {
+				grid-template-columns: repeat(3, 1fr);
+			}
+
+			.about-music-grid,
+			.about-gaming-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 560px) {
+			.about-gallery {
+				grid-template-columns: 1fr;
+			}
 		}
 	</style>
 </Layout>
-

@@ -1,51 +1,111 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const projects = [
+const gameAndGraphicsProjects = [
 	{
-		title: 'CUDA Path Tracer',
-		date: 'October 2025',
-		tech: ['OpenGL', 'C++', 'CUDA'],
+		title: 'Lucky Duckies',
+		date: 'Aug 2025 - Current',
+		tech: ['Unreal Engine 5', 'C++',],
 		description:
-			'Renders diffuse materials and dielectrics with stochastic sampling and depth of field. Supports glTF mesh loading and intersection culling via stackless BVH traversal.',
+			'Lucky Duckies is a chaotic co-op 3D puzzle-platformer where two rubber duck parents rescue ducklings in an over-the-top, water-soaked bathroom. I built systems & UI as the core engineer.',
 		image: '',
-		href: '/portfolio/cuda-path-tracer',
+		href: '/portfolio/lucky-duckies',
 	},
 	{
-		title: 'Catanks',
-		date: 'July 2024 – September 2025',
-		tech: ['HLSL', 'C#', 'Unity'],
+		title: 'DirectX11 Custom Engine',
+		date: 'Feb 2025 – May 2025',
+		tech: ['DirectX11', 'C++', 'HLSL'],
 		description:
-			'An action adventure tank shooter. With cats. As a project lead, I managed ~30 team members and was mainly involved in the design and art direction.',
+			'This engine prototype built on DirectX11 API, featuring custom math/SIMD,  real-time rendering, lighting/material, animation, physics, multithreaded job, and post-processing effects.',
 		image: '',
-		href: '/portfolio/catanks',
+		href: '/portfolio/dx11-engine',
 	},
 	{
-		title: 'Mini Minecraft',
-		date: 'November 2023',
-		tech: ['GLSL', 'OpenGL', 'C++'],
+		title: 'Slash Bash',
+		date: 'Jul 2024 - Feb 2025',
+		tech: ['Unity', 'C#'],
 		description:
-			'Built in a team of three. I was responsible for functionality related to chunking, block rendering, multiple gameplay systems, and UI.',
+			'Slash Bash is a 2D top-down 1v1 fighting game with nine characters, interactive arenas, and combo-driven fights. I led gameplay and design.',
 		image: '',
-		href: '/portfolio/mini-minecraft',
+		href: '/portfolio/slash-bash',
 	},
 	{
-		title: 'DOOR',
-		date: 'November 2024',
-		tech: ['Shader Graph', 'HLSL', 'Unity'],
+		title: 'SDL2 Game Projects',
+		date: 'Aug 2024 - Dec 2024',
+		tech: ['SDL2', 'C++'],
 		description:
-			'To learn more about URP features like postprocessing and scriptable Renderer Features, I made this little scene inspired by OMORI.',
+			'This is a series of classic games\' remakes, using the SDL library and C++. Here, I practiced making games from scratch using C++ and Actor-Component structure.',
 		image: '',
-		href: '/portfolio/door',
+		href: '/portfolio/sdl-projects',
 	},
 	{
-		title: 'WebGPU Clustered Rendering',
-		date: 'October 2025',
-		tech: ['glTF', 'WGSL', 'WebGPU'],
+		title: 'UE5 Multiplayer FPS',
+		date: 'Sep 2025 - Dec 2025',
+		tech: ['Unreal Engine 5', 'C++', 'Blueprints'],
 		description:
-			'Grouping lights into view space clusters dramatically speeds up shading computations in Forward+ and deferred pipelines.',
+			'A simple but meaningful class project made in UE5. I created a multiplayer FPS template with replication, UMG UI, GAS, and more.',
 		image: '',
-		href: '/portfolio/webgpu-clustered-rendering',
+		href: '/portfolio/ue-fps',
+	},
+	{
+		title: 'Small Games Collection',
+		date: 'May 2023 - Aug 2024',
+		tech: ['Unity', 'C#'],
+		description:
+			'Early game milestones/prototypes. Preserved here to keep my passions and to ensure I never forget the dream that set me on this path ',
+		image: '',
+		href: '/portfolio/game-collection',
+	},
+];
+
+const fullStackProjects = [
+	{
+		title: 'Full-Stack Project One',
+		date: '2026',
+		tech: ['React', 'Node.js', 'PostgreSQL'],
+		description:
+			'A production-style web app with auth, CRUD workflows, and a clean component-driven UI.',
+		image: '',
+		href: '/portfolio/full-stack-project-one',
+	},
+	{
+		title: 'Full-Stack Project Two',
+		date: '2026',
+		tech: ['Next.js', 'TypeScript', 'REST API'],
+		description:
+			'A full-stack platform focused on scalable API design, data flows, and polished frontend UX.',
+		image: '',
+		href: '/portfolio/full-stack-project-two',
+	},
+];
+
+const analogBoardGameProjects = [
+	{
+		title: 'Board Game Prototype One',
+		date: '2025',
+		tech: ['Game Design', 'Paper Prototyping', 'Playtesting'],
+		description:
+			'A competitive tabletop prototype focused on fast turns, clear rules, and replayable strategy.',
+		image: '',
+		href: '/portfolio/board-game-prototype-one',
+	},
+	{
+		title: 'Board Game Prototype Two',
+		date: '2025',
+		tech: ['Systems Design', 'Balancing', 'Iteration'],
+		description:
+			'A systems-driven board game concept iterated through multiple rounds of balance tuning.',
+		image: '',
+		href: '/portfolio/board-game-prototype-two',
+	},
+	{
+		title: 'Analog Puzzle Design',
+		date: '2024',
+		tech: ['Level Design', 'UX', 'Puzzle Logic'],
+		description:
+			'An analog puzzle experience built around readable mechanics and cooperative problem solving.',
+		image: '',
+		href: '/portfolio/analog-puzzle-design',
 	},
 ];
 ---
@@ -57,32 +117,91 @@ const projects = [
 				<h1>Portfolio</h1>
 			</div>
 			<p class="page-title-caption">
-				Write-ups and technical breakdowns for some of my favorite projects.
+				From Board to Bytes.
 			</p>
 		</div>
 
-		<div class="portfolio-grid">
-			{projects.map((project) => (
-				<a href={project.href} class="portfolio-card">
-					<div class="card-image-wrap">
-						{project.image ? (
-							<img src={project.image} alt="" class="card-image" />
-						) : (
-							<div class="card-image-placeholder" aria-hidden="true" />
-						)}
-					</div>
-					<div class="card-body">
-						<h2 class="card-title">{project.title}</h2>
-						<p class="card-date">{project.date}</p>
-						<ul class="card-tech-list" aria-label="Technologies">
-							{project.tech.map((t) => (
-								<li>{t}</li>
-							))}
-						</ul>
-						<p class="card-description">{project.description}</p>
-					</div>
-				</a>
-			))}
+		<div class="portfolio-sections">
+			<section class="portfolio-section">
+				<h1 class="portfolio-section-title">Game & Graphics Projects</h1>
+				<div class="portfolio-grid">
+					{gameAndGraphicsProjects.map((project) => (
+						<a href={project.href} class="portfolio-card">
+							<div class="card-image-wrap">
+								{project.image ? (
+									<img src={project.image} alt="" class="card-image" />
+								) : (
+									<div class="card-image-placeholder" aria-hidden="true" />
+								)}
+							</div>
+							<div class="card-body">
+								<h2 class="card-title">{project.title}</h2>
+								<p class="card-date">{project.date}</p>
+								<ul class="card-tech-list" aria-label="Technologies">
+									{project.tech.map((t) => (
+										<li>{t}</li>
+									))}
+								</ul>
+								<p class="card-description">{project.description}</p>
+							</div>
+						</a>
+					))}
+				</div>
+			</section>
+
+			<section class="portfolio-section">
+				<h1 class="portfolio-section-title">Full-Stack Web Projects</h1>
+				<div class="portfolio-grid">
+					{fullStackProjects.map((project) => (
+						<a href={project.href} class="portfolio-card">
+							<div class="card-image-wrap">
+								{project.image ? (
+									<img src={project.image} alt="" class="card-image" />
+								) : (
+									<div class="card-image-placeholder" aria-hidden="true" />
+								)}
+							</div>
+							<div class="card-body">
+								<h2 class="card-title">{project.title}</h2>
+								<p class="card-date">{project.date}</p>
+								<ul class="card-tech-list" aria-label="Technologies">
+									{project.tech.map((t) => (
+										<li>{t}</li>
+									))}
+								</ul>
+								<p class="card-description">{project.description}</p>
+							</div>
+						</a>
+					))}
+				</div>
+			</section>
+
+			<section class="portfolio-section">
+				<h1 class="portfolio-section-title">Analog & Board Game Design</h1>
+				<div class="portfolio-grid">
+					{analogBoardGameProjects.map((project) => (
+						<a href={project.href} class="portfolio-card">
+							<div class="card-image-wrap">
+								{project.image ? (
+									<img src={project.image} alt="" class="card-image" />
+								) : (
+									<div class="card-image-placeholder" aria-hidden="true" />
+								)}
+							</div>
+							<div class="card-body">
+								<h2 class="card-title">{project.title}</h2>
+								<p class="card-date">{project.date}</p>
+								<ul class="card-tech-list" aria-label="Technologies">
+									{project.tech.map((t) => (
+										<li>{t}</li>
+									))}
+								</ul>
+								<p class="card-description">{project.description}</p>
+							</div>
+						</a>
+					))}
+				</div>
+			</section>
 		</div>
 	</section>
 
@@ -101,7 +220,7 @@ const projects = [
 
 		.page-title-row h1 {
 			margin: 0;
-			font-size: 2.8rem;
+			font-size: 3.4rem;
 			line-height: 1.2;
 			text-transform: none;
 		}
@@ -110,6 +229,44 @@ const projects = [
 			margin: 0;
 			font-size: 1.05rem;
 			line-height: 1.7;
+		}
+
+		.portfolio-sections {
+			display: flex;
+			flex-direction: column;
+			gap: 3.5rem;
+		}
+
+		.portfolio-section {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 3rem;
+		}
+
+		.portfolio-section-title {
+			margin: 0;
+			width: min(70rem, calc(0.65 * (100vw - 3.5rem)));
+			max-width: 70rem;
+			font-size: 1.65rem;
+			line-height: 1.2;
+			font-weight: 700;
+			letter-spacing: 0.015em;
+			color: #dbe7ff;
+			text-align: center;
+			text-shadow: 0 1px 10px rgba(0, 111, 205, 0.18);
+			padding-bottom: 0.55rem;
+			position: relative;
+		}
+
+		.portfolio-section-title::after {
+			content: '';
+			display: block;
+			width: 3.5rem;
+			height: 2px;
+			margin: 0.55rem auto 0;
+			border-radius: 999px;
+			background: linear-gradient(90deg, rgba(0, 111, 205, 0.12), rgba(0, 111, 205, 0.75), rgba(0, 111, 205, 0.12));
 		}
 
 		.portfolio-grid {

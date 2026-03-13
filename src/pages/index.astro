@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+// 项目展示视频：将视频放到 public/ 下（如 home-bg.mp4），然后设置 videoSrc="/home-bg.mp4"
 ---
 
 <Layout title="Scott Tang – Home" showVideoBackground={true} videoSrc="" showFooter={false}>
@@ -63,7 +64,7 @@ import Layout from '../layouts/Layout.astro';
 			font-size: 0.8rem;
 			text-transform: uppercase;
 			letter-spacing: 0.18em;
-			color: #a1a1aa;
+			color: #94a3b8;
 			opacity: 0;
 			transform: translateY(0.7rem);
 			animation: hero-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
@@ -75,6 +76,7 @@ import Layout from '../layouts/Layout.astro';
 			padding: 0;
 			font-size: clamp(2.2rem, 4vw, 2.8rem);
 			letter-spacing: 0.03em;
+			color: #f1f5f9;
 		}
 
 		.hero-title-inner {
@@ -111,15 +113,15 @@ import Layout from '../layouts/Layout.astro';
 			width: 40px;
 			height: 40px;
 			border-radius: 10px;
-			color: #a1a1aa;
+			color: #94a3b8;
 			background: transparent;
 			transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 		}
 
 		.contact-link:hover {
-			color: #fafafa;
-			background: rgba(255, 255, 255, 0.12);
-			box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+			color: #f1f5f9;
+			background: rgba(148, 163, 184, 0.15);
+			box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.25);
 			transform: translateY(-2px);
 		}
 
@@ -137,7 +139,7 @@ import Layout from '../layouts/Layout.astro';
 			grid-area: lede;
 			margin: 0 0 0 0.3rem;
 			padding: 0;
-			color: #d4d4d8;
+			color: #e2e8f0;
 			font-size: 1.1rem;
 			line-height: 1.4;
 			max-width: 44rem;
@@ -172,15 +174,15 @@ import Layout from '../layouts/Layout.astro';
 		}
 
 		.lede-link {
-			color: #a1a1aa;
+			color: #94a3b8;
 			text-decoration: none;
-			border-bottom: 1px solid rgba(161, 161, 170, 0.5);
+			border-bottom: 1px solid rgba(148, 163, 184, 0.4);
 			transition: color 0.2s, border-color 0.2s;
 		}
 
 		.lede-link:hover {
-			color: #fafafa;
-			border-bottom-color: #fafafa;
+			color: #b4befe;
+			border-bottom-color: #b4befe;
 		}
 
 		.lede-about {
