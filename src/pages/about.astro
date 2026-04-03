@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Rui (Scott) Tang – About">
+<Layout title="Scott Tang – About">
 	<section class="page about-page">
 		<div class="page-title-row">
 			<div class="page-title-left">
@@ -122,7 +122,7 @@ import Layout from '../layouts/Layout.astro';
 					if (placeholder) placeholder.remove();
 					const oneGame = games.slice(0, 1);
 					container.append(
-						...oneGame.map((g) => {
+						...oneGame.map((g: { appid: number; name: string; playtime_forever?: number }) => {
 							const link = document.createElement('a');
 							link.href = `https://store.steampowered.com/app/${g.appid}`;
 							link.target = '_blank';
@@ -356,13 +356,6 @@ import Layout from '../layouts/Layout.astro';
 			color: #e2e8f0;
 		}
 
-		.about-gaming-grid {
-			display: grid;
-			grid-template-columns: 1fr 1fr;
-			gap: 1.5rem;
-			margin-top: 1rem;
-		}
-
 		.about-gaming-block {
 			display: flex;
 			flex-direction: column;
@@ -556,6 +549,7 @@ import Layout from '../layouts/Layout.astro';
 			gap: 1.25rem;
 			width: 100%;
 			max-width: 56rem;
+			margin-top: 1rem;
 			margin-inline: auto;
 		}
 
