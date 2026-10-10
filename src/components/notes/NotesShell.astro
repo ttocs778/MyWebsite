@@ -1,0 +1,473 @@
+---
+// Page frame for /notes and /notes/[slug]: title row + sidebar + reading pane.
+// The sidebar persists across card-to-card navigation (ClientRouter), so its
+// scroll position, open groups and search text survive clicks.
+import { ClientRouter } from 'astro:transitions';
+import Layout from '../../layouts/Layout.astro';
+import nav from '../../data/notes-nav.json';
+
+interface Props {
+	title: string;
+	currentSlug?: string;
+}
+
+const { title, currentSlug } = Astro.props;
+const cardCount = new Set(
+	nav.sections.flatMap((s) => [...s.pinned, ...s.groups.flatMap((g) => g.items)].map((it) => it.slug)),
+).size;
+const linkProps = (slug: string) => ({
+	href: `/notes/${slug}`,
+	'aria-current': slug === currentSlug ? ('page' as const) : undefined,
+});
+---
+
+<Layout title={title}>
+	<ClientRouter slot="head" />
+	<section class="page">
+		<div class="page-title-row">
+			<div class="page-title-left">
+				<h1>Notes</h1>
+			</div>
+			<p class="page-title-caption">Thoughts, write-ups, and things worth remembering.</p>
+		</div>
+
+		<div class="notes-layout">
+			<aside class="notes-sidebar" transition:persist="notes-sidebar" aria-label="All notes">
+				<button class="notes-nav-toggle" type="button" aria-expanded="false" aria-controls="notes-nav-panel">
+					<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+					Browse cards <span class="notes-nav-count">{cardCount}</span>
+				</button>
+
+				<div class="notes-nav-panel" id="notes-nav-panel">
+					<div class="notes-search">
+						<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+						<input type="search" placeholder="Search cards…" aria-label="Search cards" autocomplete="off" spellcheck="false" />
+					</div>
+
+					<nav class="notes-nav">
+						<a href="/notes" class="notes-nav-home">Overview</a>
+						{nav.sections.map((section) => (
+							<div class="notes-section">
+								{section.name && <p class="notes-section-label">{section.name}</p>}
+								{section.pinned.length > 0 && (
+									<ul class="notes-pinned">
+										{section.pinned.map((item) => (
+											<li data-title={item.title.toLowerCase()}>
+												<a {...linkProps(item.slug)} class:list={['notes-nav-link', 'notes-nav-pinned', item.slug === currentSlug && 'is-active']}>{item.title}</a>
+											</li>
+										))}
+									</ul>
+								)}
+								{section.groups.map((group) => (
+									<details class="notes-group" open={group.items.some((it) => it.slug === currentSlug)}>
+										<summary>
+											<svg class="notes-group-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+											<span>{group.name}</span>
+											<span class="notes-group-count">{group.items.length}</span>
+										</summary>
+										<ul>
+											{group.items.map((item) => (
+												<li data-title={item.title.toLowerCase()}>
+													<a {...linkProps(item.slug)} class:list={['notes-nav-link', item.slug === currentSlug && 'is-active']}>{item.title}</a>
+												</li>
+											))}
+										</ul>
+									</details>
+								))}
+							</div>
+						))}
+						<p class="notes-nav-empty" hidden>No cards match.</p>
+					</nav>
+				</div>
+
+				<script is:inline>
+					(function () {
+						// Sidebar is persisted, so this runs once; per-page work hangs off astro:page-load.
+						if (window.__notesNavInit) return;
+						window.__notesNavInit = true;
+
+						function sidebar() { return document.querySelector('.notes-sidebar'); }
+
+						function syncActive() {
+							var root = sidebar();
+							if (!root) return;
+							var path = location.pathname.replace(/\/$/, '');
+							var first = null;
+							root.querySelectorAll('.notes-nav-link, .notes-nav-home').forEach(function (a) {
+								var on = a.getAttribute('href') === path;
+								a.classList.toggle('is-active', on);
+								if (on) {
+									a.setAttribute('aria-current', 'page');
+									var group = a.closest('details');
+									if (group) group.open = true;
+									if (!first) first = a;
+								} else {
+									a.removeAttribute('aria-current');
+								}
+							});
+							// Scroll only the sidebar, never the page.
+							var panel = root.querySelector('.notes-nav');
+							if (first && panel) {
+								var p = panel.getBoundingClientRect();
+								var r = first.getBoundingClientRect();
+								if (r.top < p.top || r.bottom > p.bottom) {
+									panel.scrollTop += r.top - p.top - p.height / 2 + r.height / 2;
+								}
+							}
+							root.classList.remove('is-open');
+							var toggle = root.querySelector('.notes-nav-toggle');
+							if (toggle) toggle.setAttribute('aria-expanded', 'false');
+						}
+
+						document.addEventListener('input', function (e) {
+							var input = e.target;
+							if (!input.closest || !input.closest('.notes-search')) return;
+							var root = sidebar();
+							var q = input.value.trim().toLowerCase();
+							var any = false;
+							root.querySelectorAll('.notes-pinned li').forEach(function (li) {
+								li.hidden = q && li.dataset.title.indexOf(q) === -1;
+								if (!li.hidden) any = true;
+							});
+							root.querySelectorAll('.notes-group').forEach(function (group) {
+								var hits = 0;
+								group.querySelectorAll('li').forEach(function (li) {
+									var match = !q || li.dataset.title.indexOf(q) !== -1;
+									li.hidden = !match;
+									if (match) hits++;
+								});
+								group.hidden = q && hits === 0;
+								if (q) {
+									if (!group.hasAttribute('data-was-open')) group.setAttribute('data-was-open', group.open ? '1' : '0');
+									group.open = hits > 0;
+								} else if (group.hasAttribute('data-was-open')) {
+									group.open = group.getAttribute('data-was-open') === '1';
+									group.removeAttribute('data-was-open');
+								}
+								if (hits) any = true;
+							});
+							root.querySelectorAll('.notes-section').forEach(function (section) {
+								section.hidden = !!q && !section.querySelector('li:not([hidden])');
+							});
+							root.querySelector('.notes-nav-empty').hidden = any;
+						});
+
+						document.addEventListener('click', function (e) {
+							var toggle = e.target.closest && e.target.closest('.notes-nav-toggle');
+							if (!toggle) return;
+							var open = sidebar().classList.toggle('is-open');
+							toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+						});
+
+						document.addEventListener('astro:page-load', syncActive);
+					})();
+				</script>
+			</aside>
+
+			<div class="notes-main">
+				<slot />
+			</div>
+		</div>
+	</section>
+
+	<style>
+		.page {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 2rem;
+		}
+
+		.page-title-row h1 {
+			margin: 0;
+			font-size: 3.4rem;
+			line-height: 1.2;
+			text-transform: none;
+		}
+
+		.page-title-caption {
+			margin: 0;
+		}
+
+		/* Same width as the Portfolio grid */
+		.notes-layout {
+			display: grid;
+			grid-template-columns: 15rem minmax(0, 1fr);
+			gap: 2.5rem;
+			align-items: start;
+			width: min(70rem, var(--fluid-width));
+			max-width: 70rem;
+		}
+
+		/* ---------- Sidebar ---------- */
+		.notes-sidebar {
+			position: sticky;
+			top: 1.5rem;
+			display: flex;
+			flex-direction: column;
+			max-height: calc(100vh - 3rem);
+			border-radius: 14px;
+			background: rgba(15, 23, 42, 0.45);
+			border: 1px solid rgba(148, 163, 184, 0.15);
+			backdrop-filter: blur(12px);
+			-webkit-backdrop-filter: blur(12px);
+			overflow: hidden;
+		}
+
+		.notes-nav-panel {
+			display: flex;
+			flex-direction: column;
+			min-height: 0;
+			flex: 1;
+		}
+
+		.notes-nav-toggle {
+			display: none;
+		}
+
+		.notes-search {
+			position: relative;
+			padding: 0.75rem;
+			border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+		}
+
+		.notes-search svg {
+			position: absolute;
+			left: 1.35rem;
+			top: 50%;
+			width: 15px;
+			height: 15px;
+			transform: translateY(-50%);
+			fill: none;
+			stroke: #64748b;
+			stroke-width: 2;
+			stroke-linecap: round;
+			pointer-events: none;
+		}
+
+		.notes-search input {
+			width: 100%;
+			padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+			border-radius: 8px;
+			border: 1px solid rgba(148, 163, 184, 0.18);
+			background: rgba(2, 6, 23, 0.35);
+			color: #e2e8f0;
+			font: inherit;
+			font-size: 0.9rem;
+			outline: none;
+			transition: border-color 0.15s;
+		}
+
+		.notes-search input:focus {
+			border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+		}
+
+		.notes-nav {
+			overflow-y: auto;
+			overscroll-behavior: contain;
+			padding: 0.5rem 0.5rem 0.75rem;
+			scrollbar-width: thin;
+			scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+		}
+
+		.notes-nav-home {
+			display: block;
+			margin-bottom: 0.25rem;
+		}
+
+		.notes-section + .notes-section {
+			margin-top: 0.6rem;
+			padding-top: 0.6rem;
+			border-top: 1px solid rgba(148, 163, 184, 0.1);
+		}
+
+		.notes-section-label {
+			margin: 0.35rem 0.5rem 0.3rem;
+			color: var(--accent);
+			font-size: 0.72rem;
+			font-weight: 700;
+			letter-spacing: 0.12em;
+			text-transform: uppercase;
+		}
+
+		.notes-pinned {
+			margin: 0 0 0.25rem;
+			padding: 0;
+			list-style: none;
+		}
+
+		.notes-nav-link.notes-nav-pinned {
+			border-left: none;
+			border-radius: 6px;
+			color: #cbd5e1;
+			font-weight: 600;
+		}
+
+		.notes-nav-link.notes-nav-pinned::before {
+			content: '★ ';
+			color: var(--accent);
+			font-size: 0.8em;
+		}
+
+		.notes-group summary {
+			display: flex;
+			align-items: center;
+			gap: 0.4rem;
+			padding: 0.45rem 0.5rem;
+			border-radius: 6px;
+			color: #cbd5e1;
+			font-size: 0.8rem;
+			font-weight: 700;
+			letter-spacing: 0.06em;
+			text-transform: uppercase;
+			cursor: pointer;
+			list-style: none;
+			user-select: none;
+		}
+
+		.notes-group summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.notes-group summary:hover {
+			background: rgba(148, 163, 184, 0.08);
+		}
+
+		.notes-group-chevron {
+			width: 14px;
+			height: 14px;
+			flex-shrink: 0;
+			fill: none;
+			stroke: #64748b;
+			stroke-width: 2.5;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+			transition: transform 0.15s;
+		}
+
+		.notes-group[open] .notes-group-chevron {
+			transform: rotate(90deg);
+		}
+
+		.notes-group-count {
+			margin-left: auto;
+			color: #64748b;
+			font-size: 0.72rem;
+			font-weight: 600;
+		}
+
+		.notes-group ul {
+			margin: 0 0 0.35rem;
+			padding: 0 0 0 0.95rem;
+			list-style: none;
+		}
+
+		.notes-nav-link,
+		.notes-nav-home {
+			display: block;
+			padding: 0.32rem 0.6rem;
+			border-left: 2px solid rgba(148, 163, 184, 0.12);
+			color: #94a3b8;
+			font-size: 0.9rem;
+			line-height: 1.35;
+			text-decoration: none;
+			transition: color 0.12s, background 0.12s, border-color 0.12s;
+		}
+
+		.notes-nav-home {
+			border-left: none;
+			border-radius: 6px;
+			color: #cbd5e1;
+			font-weight: 600;
+		}
+
+		.notes-nav-link:hover,
+		.notes-nav-home:hover {
+			color: #f1f5f9;
+			background: rgba(148, 163, 184, 0.08);
+		}
+
+		.notes-nav-link.is-active,
+		.notes-nav-home.is-active {
+			color: var(--accent-hover);
+			border-left-color: var(--accent);
+			background: color-mix(in srgb, var(--accent) 10%, transparent);
+		}
+
+		.notes-nav-empty {
+			margin: 0.75rem 0.5rem;
+			color: #64748b;
+			font-size: 0.9rem;
+		}
+
+		/* ---------- Main pane ---------- */
+		.notes-main {
+			min-width: 0;
+			/* Same reading width for the overview and every card */
+			max-width: 50rem;
+		}
+
+		@media (max-width: 640px) {
+			.notes-layout {
+				grid-template-columns: minmax(0, 1fr);
+				gap: 1.25rem;
+			}
+
+			.notes-sidebar {
+				position: relative;
+				top: 0;
+				max-height: none;
+			}
+
+			.notes-nav-toggle {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				width: 100%;
+				padding: 0.75rem 1rem;
+				border: none;
+				background: none;
+				color: #e2e8f0;
+				font: inherit;
+				font-weight: 600;
+				cursor: pointer;
+			}
+
+			.notes-nav-toggle svg {
+				width: 18px;
+				height: 18px;
+				fill: none;
+				stroke: currentColor;
+				stroke-width: 2;
+				stroke-linecap: round;
+			}
+
+			.notes-nav-count {
+				margin-left: auto;
+				color: #64748b;
+				font-size: 0.85rem;
+			}
+
+			.notes-nav-panel {
+				display: none;
+				border-top: 1px solid rgba(148, 163, 184, 0.12);
+			}
+
+			.notes-sidebar.is-open .notes-nav-panel {
+				display: flex;
+			}
+
+			.notes-nav {
+				max-height: 60vh;
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.notes-group-chevron,
+			.notes-nav-link,
+			.notes-search input {
+				transition: none;
+			}
+		}
+	</style>
+</Layout>

@@ -1,0 +1,319 @@
+---
+import { getCollection, render } from 'astro:content';
+import NotesShell from '../../components/notes/NotesShell.astro';
+import 'katex/dist/katex.min.css';
+
+export async function getStaticPaths() {
+	const notes = await getCollection('notes');
+	const linkRe = /\]\(\/notes\/([a-z0-9-]+)/g;
+
+	// Backlinks: which cards link to this one.
+	const backlinks = new Map<string, Set<string>>();
+	for (const note of notes) {
+		for (const [, target] of (note.body ?? '').matchAll(linkRe)) {
+			if (target === note.id) continue;
+			if (!backlinks.has(target)) backlinks.set(target, new Set());
+			backlinks.get(target)!.add(note.id);
+		}
+	}
+	const titleOf = new Map(notes.map((n) => [n.id, n.data.title]));
+
+	return notes.map((note) => ({
+		params: { slug: note.id },
+		props: {
+			note,
+			linkedFrom: [...(backlinks.get(note.id) ?? [])]
+				.map((id) => ({ slug: id, title: titleOf.get(id)! }))
+				.sort((a, b) => a.title.localeCompare(b.title)),
+		},
+	}));
+}
+
+const { note, linkedFrom } = Astro.props;
+const { Content } = await render(note);
+const updated = note.data.updated.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<NotesShell title={`${note.data.title} – Notes – Scott Tang`} currentSlug={note.id}>
+	<article class="note">
+		<header class="note-header">
+			<h2 class="note-title">{note.data.title}</h2>
+			<div class="note-meta">
+				{note.data.tags.map((tag) => <span class="note-tag">#{tag}</span>)}
+				<span class="note-updated">Updated {updated}</span>
+			</div>
+		</header>
+
+		<div class="note-body">
+			<Content />
+		</div>
+
+		{linkedFrom.length > 0 && (
+			<footer class="note-backlinks">
+				<h3>Linked from</h3>
+				<ul>
+					{linkedFrom.map((l) => <li><a href={`/notes/${l.slug}`}>{l.title}</a></li>)}
+				</ul>
+			</footer>
+		)}
+	</article>
+</NotesShell>
+
+<style>
+	.note {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.note-header {
+		padding-bottom: 1rem;
+		border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+	}
+
+	.note-title {
+		margin: 0 0 0.6rem;
+		font-size: 2rem;
+		line-height: 1.2;
+		color: #f1f5f9;
+		letter-spacing: 0.01em;
+	}
+
+	.note-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.85rem;
+	}
+
+	.note-tag {
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--accent) 10%, transparent);
+		color: var(--accent-hover);
+	}
+
+	.note-updated {
+		margin-left: auto;
+		color: #64748b;
+	}
+
+	/* ---------- Rendered markdown ---------- */
+	.note-body {
+		color: #cbd5e1;
+		font-size: 1.02rem;
+		line-height: 1.75;
+		overflow-wrap: break-word;
+	}
+
+	.note-body > :global(*:first-child) {
+		margin-top: 0;
+	}
+
+	.note-body :global(p),
+	.note-body :global(ul),
+	.note-body :global(ol) {
+		margin: 0 0 1rem;
+	}
+
+	.note-body :global(li + li) {
+		margin-top: 0.25rem;
+	}
+
+	.note-body :global(h2) {
+		margin: 2.25rem 0 0.75rem;
+		font-size: 1.35rem;
+		color: #e2e8f0;
+		letter-spacing: 0.01em;
+	}
+
+	.note-body :global(h3) {
+		margin: 1.75rem 0 0.5rem;
+		font-size: 1.1rem;
+		color: #e2e8f0;
+	}
+
+	.note-body :global(strong) {
+		color: #f1f5f9;
+	}
+
+	.note-body :global(a) {
+		color: var(--accent);
+		text-decoration: none;
+		border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+		transition: color 0.15s, border-color 0.15s;
+	}
+
+	.note-body :global(a:hover) {
+		color: var(--accent-hover);
+		border-bottom-color: var(--accent-hover);
+	}
+
+	.note-body :global(.wikilink-missing) {
+		color: #64748b;
+		border-bottom: 1px dashed rgba(100, 116, 139, 0.6);
+		cursor: help;
+	}
+
+	.note-body :global(:not(pre) > code) {
+		padding: 0.1em 0.4em;
+		border-radius: 5px;
+		background: rgba(148, 163, 184, 0.14);
+		color: #e2e8f0;
+		font-size: 0.88em;
+	}
+
+	.note-body :global(pre) {
+		margin: 0 0 1.25rem;
+		padding: 1rem 1.15rem;
+		border-radius: 10px;
+		border: 1px solid rgba(148, 163, 184, 0.12);
+		font-size: 0.85rem;
+		line-height: 1.6;
+		overflow-x: auto;
+	}
+
+	.note-body :global(table) {
+		display: block;
+		max-width: 100%;
+		overflow-x: auto;
+		margin: 0 0 1.25rem;
+		border-collapse: collapse;
+		font-size: 0.92rem;
+	}
+
+	.note-body :global(th),
+	.note-body :global(td) {
+		padding: 0.5rem 0.8rem;
+		border: 1px solid rgba(148, 163, 184, 0.18);
+	}
+
+	.note-body :global(th) {
+		background: rgba(148, 163, 184, 0.08);
+		color: #e2e8f0;
+	}
+
+	.note-body :global(blockquote) {
+		margin: 0 0 1rem;
+		padding: 0.25rem 1rem;
+		border-left: 3px solid color-mix(in srgb, var(--accent) 40%, transparent);
+		color: #94a3b8;
+	}
+
+	.note-body :global(img) {
+		display: block;
+		max-width: 100%;
+		height: auto;
+		margin: 0.5rem 0 1.25rem;
+		border-radius: 8px;
+	}
+
+	.note-body :global(.katex-display) {
+		margin: 0.75rem 0 1.25rem;
+		overflow-x: auto;
+		overflow-y: hidden;
+		padding: 0.25rem 0;
+	}
+
+	.note-body :global(.katex) {
+		font-size: 1.08em;
+	}
+
+	/* Obsidian callouts -> <details> */
+	.note-body :global(.callout) {
+		margin: 0 0 1.25rem;
+		border-radius: 10px;
+		border: 1px solid rgba(148, 163, 184, 0.18);
+		border-left: 3px solid var(--accent);
+		background: rgba(15, 23, 42, 0.4);
+	}
+
+	.note-body :global(.callout summary) {
+		padding: 0.6rem 1rem;
+		color: #e2e8f0;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	.note-body :global(.callout[open] summary) {
+		border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+	}
+
+	.note-body :global(.callout > :not(summary)) {
+		margin-inline: 1rem;
+	}
+
+	.note-body :global(.callout > :not(summary):first-of-type) {
+		margin-top: 0.85rem;
+	}
+
+	.note-body :global(.callout-warning),
+	.note-body :global(.callout-caution) {
+		border-left-color: #fbbf24;
+	}
+
+	.note-body :global(.callout-tip),
+	.note-body :global(.callout-success) {
+		border-left-color: #34d399;
+	}
+
+	/* ---------- Backlinks ---------- */
+	.note-backlinks {
+		padding-top: 1.25rem;
+		border-top: 1px solid rgba(148, 163, 184, 0.18);
+	}
+
+	.note-backlinks h3 {
+		margin: 0 0 0.6rem;
+		color: #94a3b8;
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.note-backlinks ul {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.note-backlinks a {
+		display: inline-block;
+		padding: 0.3rem 0.75rem;
+		border-radius: 999px;
+		border: 1px solid rgba(148, 163, 184, 0.2);
+		color: #cbd5e1;
+		font-size: 0.88rem;
+		text-decoration: none;
+		transition: color 0.15s, border-color 0.15s, background 0.15s;
+	}
+
+	.note-backlinks a:hover {
+		color: #f1f5f9;
+		border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+		background: color-mix(in srgb, var(--accent) 8%, transparent);
+	}
+
+	@media (max-width: 640px) {
+		.note-title {
+			font-size: 1.6rem;
+		}
+
+		.note-updated {
+			margin-left: 0;
+			width: 100%;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.note-body :global(a),
+		.note-backlinks a {
+			transition: none;
+		}
+	}
+</style>

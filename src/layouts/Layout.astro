@@ -1,8 +1,10 @@
 ---
-import '@fontsource-variable/atkinson-hyperlegible-next';
-import '@fontsource/maple-mono';
+import atkinsonLatin from '@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2?url';
+import atkinsonLatinExt from '@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2?url';
 
-const { title = 'Scott Tang', showVideoBackground = false, videoSrc = '', showFooter = true } = Astro.props;
+// textWidth: width of the page's title/text column. The footer row matches it and
+// ignores anything wider (media, card grids, sidebars).
+const { title = 'Scott Tang', showVideoBackground = false, videoSrc = '', showFooter = true, textWidth = '50rem' } = Astro.props;
 const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html';
 ---
 
@@ -15,6 +17,25 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+		<slot name="head" />
+		<style set:html={`
+			@font-face {
+				font-family: 'Atkinson Hyperlegible Next Variable';
+				font-style: normal;
+				font-display: block;
+				font-weight: 200 800;
+				src: url(${atkinsonLatin}) format('woff2-variations');
+				unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+			}
+			@font-face {
+				font-family: 'Atkinson Hyperlegible Next Variable';
+				font-style: normal;
+				font-display: block;
+				font-weight: 200 800;
+				src: url(${atkinsonLatinExt}) format('woff2-variations');
+				unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+			}
+		`}></style>
 	</head>
 	<body id="top" class:list={[isHome && 'home-page', !isHome && 'inner-pages']}>
 		{showVideoBackground ? (
@@ -29,7 +50,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 				<div class="video-bg-glass" aria-hidden="true"></div>
 			</div>
 		) : (
-			<div class="pixel-bg"></div>
+			<div class="pixel-bg" transition:persist="site-bg"></div>
 		)}
 		{isHome && (
 		<header class="home-header">
@@ -64,7 +85,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 				<slot />
 			</main>
 			{showFooter && (
-			<footer class="site-footer">
+			<footer class="site-footer" style={`--footer-width: ${textWidth}`}>
 				<div class="footer-inner">
 					<div class="footer-row footer-row-main">
 						<a href="#top" class="footer-back">
@@ -96,7 +117,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 							<a href="https://github.com/ttocs778" target="_blank" rel="noopener noreferrer" class="footer-link-icon" aria-label="GitHub">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
 							</a>
-							<a href="https://www.linkedin.com/in/scott-tang-gl/" target="_blank" rel="noopener noreferrer" class="footer-link-icon" aria-label="LinkedIn">
+							<a href="https://www.linkedin.com/in/ttocs778/" target="_blank" rel="noopener noreferrer" class="footer-link-icon" aria-label="LinkedIn">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
 							</a>
 						</div>
@@ -121,7 +142,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 					|| (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches);
 				if (isMobile) return;
 
-				var zoomable = document.querySelectorAll('img:not([data-no-zoom])');
+				var zoomable = document.querySelectorAll('img:not([data-no-zoom]):not(.card-image):not(.project-hero)');
 				var dialog = document.getElementById('img-zoom-dialog');
 				var dialogImg = document.getElementById('img-zoom-dialog-img');
 
@@ -164,12 +185,16 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		color-scheme: dark;
 		--bg: #0a0a0a;
 		--bg-alt: #111111;
-		--accent: #71717a;
-		--accent-soft: rgba(113, 113, 122, 0.25);
+		/* Signature accent (periwinkle): links, tags, active states. Change here to re-theme. */
+		--accent: #8b9cff;
+		--accent-hover: #aab6ff;
+		--accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
 		--text: #fafafa;
 		--muted: #a1a1aa;
 		--border-subtle: rgba(161, 161, 170, 0.3);
 		--pixel-size: 32px;
+		/* Width of centered page columns; pages cap it with min(NNrem, var(--fluid-width)). Full width on mobile. */
+		--fluid-width: calc(0.65 * (100vw - 3.5rem));
 	}
 
 	*,
@@ -200,6 +225,9 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		grid-template-rows: 1fr auto; /* content then footer */
 		min-height: 100vh;
 		padding: 2.5rem 5rem 3rem;
+		/* Full-bleed elements use 100vw, which includes the scrollbar; clip the
+		   overshoot instead of growing a horizontal scrollbar (clip keeps sticky working) */
+		overflow-x: clip;
 	}
 
 	body.home-page .page {
@@ -235,7 +263,6 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		background: #0c0f1a;
 		--text: #e2e8f0;
 		--muted: #94a3b8;
-		--accent: #b4befe;
 		color: #e2e8f0;
 	}
 	body.inner-pages :global(.page-title-row h1) {
@@ -248,23 +275,21 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	body.inner-pages .footer-nav-link {
 		color: #cbd5e1;
 	}
-	body.inner-pages .footer-nav-link:hover {
-		color: #f1f5f9;
-	}
+	body.inner-pages .footer-nav-link:hover,
 	body.inner-pages .footer-back:hover,
 	body.inner-pages .footer-link-icon:hover {
-		color: #f1f5f9;
+		color: var(--accent);
 	}
 	body.inner-pages .site-footer {
 		border-top-color: rgba(148, 163, 184, 0.2);
 	}
 	body.inner-pages :global(.about-link),
 	body.inner-pages :global(a).about-link {
-		color: #b4befe;
+		color: var(--accent);
 	}
 	body.inner-pages :global(.about-link:hover),
 	body.inner-pages :global(a).about-link:hover {
-		color: #c7d2fe;
+		color: var(--accent-hover);
 	}
 	@keyframes inner-bg-fade-in {
 		from {
@@ -399,7 +424,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	}
 
 	.home-header-link:hover {
-		color: #e2e8f0;
+		color: var(--accent);
 	}
 
 	.home-header-link-icon {
@@ -410,102 +435,6 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		stroke-width: 2.5;
 		stroke-linecap: round;
 		stroke-linejoin: round;
-	}
-
-	.brand {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		white-space: nowrap;
-	}
-
-	.brand-mark {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 42px;
-		height: 42px;
-		border-radius: 10px;
-		background: linear-gradient(135deg, #27272a, #18181b);
-		color: #fafafa;
-		font-weight: 600;
-		font-size: 0.9rem;
-		letter-spacing: 0.06em;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-	}
-
-	.brand-text {
-		display: flex;
-		flex-direction: column;
-		gap: 0.1rem;
-	}
-
-	.name {
-		font-size: 1.5rem;
-		font-weight: 700;
-		letter-spacing: 0.02em;
-		text-transform: none;
-		color: #f9fafb;
-	}
-
-	.nav {
-		display: flex;
-		align-items: center;
-		gap: 1.75rem;
-		font-size: 1rem;
-		flex-shrink: 0;
-		white-space: nowrap;
-	}
-
-	.nav-link {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.25rem 0;
-		border-radius: 8px;
-		color: #a1a1aa;
-		text-decoration: none;
-		text-transform: none;
-		letter-spacing: 0.04em;
-		border: 1px solid transparent;
-		transition:
-			color 160ms ease,
-			background 160ms ease,
-			border-color 160ms ease,
-			transform 120ms ease;
-		font-size: 0.9rem;
-	}
-
-	.nav-link-icon {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 18px;
-		height: 18px;
-		color: #d4d4d8;
-	}
-
-	.nav-link-icon svg {
-		width: 100%;
-		height: 100%;
-		fill: none;
-		stroke: currentColor;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-
-	.nav-link-label {
-		font-size: 1.05rem;
-		font-weight: 700;
-	}
-
-	.nav-link:hover {
-		color: #fafafa;
-		border-color: transparent;
-		transform: translateY(-1px);
 	}
 
 	.content {
@@ -528,7 +457,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	/* Section full width so title row’s 65% is same on Portfolio, Notes, About (otherwise section shrinks on Notes/About) */
 	.page-no-header .content > :global(section.page) {
 		width: 100%;
-		min-width: min(70rem, calc(0.65 * (100vw - 3.5rem)));
+		min-width: min(70rem, var(--fluid-width));
 	}
 
 	/* Title row: unseen box = footer bar width; P at left, caption at right; only gap between them changes */
@@ -538,7 +467,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		justify-content: space-between;
 		flex-wrap: nowrap;
 		gap: 1rem;
-		width: min(50rem, calc(0.65 * (100vw - 3.5rem)));
+		width: min(50rem, var(--fluid-width));
 		max-width: 50rem;
 		margin-inline: auto;
 		margin-bottom: 1rem;
@@ -550,30 +479,6 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		gap: 0;
 		align-items: flex-start;
 		flex-shrink: 0;
-	}
-
-	:global(.page-title-eyebrow) {
-		display: flex;
-		align-items: flex-end;
-		gap: 0.35rem;
-		color: #a5b4fc;
-		font-size: 0.9rem;
-		letter-spacing: 0.04em;
-		line-height: 1;
-	}
-
-	:global(.page-title-eyebrow svg) {
-		/* Match title size (e.g. .page-title-row h1 font-size); change with your title */
-		width: 2.8rem !important;
-		height: 2.8rem !important;
-		min-width: 2.8rem;
-		min-height: 2.8rem;
-		flex-shrink: 0;
-		fill: none;
-		stroke: currentColor;
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
 	}
 
 	:global(.page-title-row h1) {
@@ -620,8 +525,11 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		grid-template-columns: 1fr auto 1fr;
 		align-items: center;
 		gap: 1rem;
-		width: 100%;
-		max-width: 51rem;
+		/* Same width as the page title/text column (textWidth prop), scaling with it;
+		   +1rem because the icon buttons' padding sits inside the edge */
+		width: calc(min(var(--footer-width), var(--fluid-width)) + 1rem);
+		/* Floor: the three groups need ~41rem side by side (= 40rem text + 1rem); below 768px the mobile layout takes over */
+		min-width: min(41rem, 100%);
 		margin-inline: auto;
 
 		padding: 1rem 0;
@@ -632,9 +540,9 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		display: flex;
 		align-items: center;
 		gap: 0.23rem;
-		flex-wrap: wrap;
+		/* Stay on one row; the grid gap already separates it from the nav */
+		flex-wrap: nowrap;
 		justify-content: flex-end;
-		margin-left: 1rem;
 	}
 
 	.footer-row-main .footer-link-icon {
@@ -646,7 +554,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	.footer-nav-row {
 		display: flex;
 		align-items: center;
-		gap: 1.25rem;
+		gap: 1rem;
 		flex-wrap: wrap;
 	}
 
@@ -666,7 +574,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	}
 
 	.footer-nav-link:hover {
-		color: #fafafa;
+		color: var(--accent);
 	}
 
 	.footer-nav-icon {
@@ -691,7 +599,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	}
 
 	.footer-back:hover {
-		color: #fafafa;
+		color: var(--accent);
 	}
 
 	.footer-back-icon {
@@ -717,9 +625,9 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	}
 
 	.footer-link-icon:hover {
-		color: #fafafa;
-		background: rgba(255, 255, 255, 0.12);
-		box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15);
+		color: var(--accent);
+		background: color-mix(in srgb, var(--accent) 12%, transparent);
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
 		transform: translateY(-2px);
 	}
 
@@ -744,8 +652,24 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 	}
 
 	@media (max-width: 768px) {
+		:root {
+			--fluid-width: 100%;
+		}
+
 		body {
 			overflow: auto;
+		}
+
+		/* Stack caption under the title instead of squeezing both into one row */
+		:global(.page-title-row) {
+			flex-wrap: wrap;
+			row-gap: 0.5rem;
+		}
+
+		:global(.page-title-caption) {
+			max-width: none;
+			flex-shrink: 1;
+			text-align: left;
 		}
 
 		.page {
@@ -778,8 +702,14 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		.footer-inner {
 			padding: 0 1.25rem;
 		}
+	}
 
+	/* Footer switches to its two-row layout a bit earlier than the rest of the page:
+	   between 768px and 900px the desktop page padding leaves too little room for
+	   back / nav / social side by side */
+	@media (max-width: 900px) {
 		.footer-row-main {
+			width: 100%;
 			display: flex;
 			flex-wrap: wrap;
 			justify-content: space-between;

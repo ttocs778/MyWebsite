@@ -4,6 +4,9 @@
  * Get API key: https://steamcommunity.com/dev/apikey
  * Steam ID: 64-bit ID from your profile (e.g. from steamid.io)
  */
+
+// Live data: rendered on each request, not at build time.
+export const prerender = false;
 export async function GET() {
 	const key = import.meta.env.STEAM_API_KEY;
 	const steamId = import.meta.env.STEAM_ID;

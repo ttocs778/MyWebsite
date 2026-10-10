@@ -1,113 +1,38 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 
-const gameAndGraphicsProjects = [
+// Card content (title, date, tech, description, image) comes from each project's
+// src/content/projects/<slug>/index.mdx frontmatter. This file only decides which
+// section a project sits in and in what order.
+const sectionOrder = [
 	{
-		title: 'Lucky Duckies',
-		date: 'Aug 2025 - Current',
-		tech: ['Unreal Engine 5', 'C++',],
-		description:
-			'Lucky Duckies is a chaotic co-op 3D puzzle-platformer where two rubber duck parents rescue ducklings in an over-the-top, water-soaked bathroom. I built systems & UI as the core engineer.',
-		image: '',
-		href: '/portfolio/lucky-duckies',
+		title: 'Game & Graphics Projects',
+		slugs: ['lucky-duckies', 'dx11-engine', 'slash-bash', 'sdl-projects', 'ue-fps', 'game-collection'],
 	},
 	{
-		title: 'DirectX11 Custom Engine',
-		date: 'Feb 2025 – May 2025',
-		tech: ['DirectX11', 'C++', 'HLSL'],
-		description:
-			'This engine prototype built on DirectX11 API, featuring custom math/SIMD,  real-time rendering, lighting/material, animation, physics, multithreaded job, and post-processing effects.',
-		image: '',
-		href: '/portfolio/dx11-engine',
+		title: 'Full-Stack Web Projects',
+		slugs: ['fitness-goal-tracker', 'my-website'],
 	},
 	{
-		title: 'Slash Bash',
-		date: 'Jul 2024 - Feb 2025',
-		tech: ['Unity', 'C#'],
-		description:
-			'Slash Bash is a 2D top-down 1v1 fighting game with nine characters, interactive arenas, and combo-driven fights. I led gameplay and design.',
-		image: '',
-		href: '/portfolio/slash-bash',
-	},
-	{
-		title: 'SDL2 Game Projects',
-		date: 'Aug 2024 - Dec 2024',
-		tech: ['SDL2', 'C++'],
-		description:
-			'This is a series of classic games\' remakes, using the SDL library and C++. Here, I practiced making games from scratch using C++ and Actor-Component structure.',
-		image: '',
-		href: '/portfolio/sdl-projects',
-	},
-	{
-		title: 'UE5 Multiplayer FPS',
-		date: 'Sep 2025 - Dec 2025',
-		tech: ['Unreal Engine 5', 'C++', 'Blueprints'],
-		description:
-			'A simple but meaningful class project made in UE5. I created a multiplayer FPS template with replication, UMG UI, GAS, and more.',
-		image: '',
-		href: '/portfolio/ue-fps',
-	},
-	{
-		title: 'Small Games Collection',
-		date: 'May 2023 - Aug 2024',
-		tech: ['Unity', 'C#'],
-		description:
-			'Early game milestones/prototypes. Preserved here to keep my passions and to ensure I never forget the dream that set me on this path ',
-		image: '',
-		href: '/portfolio/game-collection',
+		title: 'Analog & Board Game Design',
+		slugs: ['date-dash', 'love-panic', 'spell-showdown'],
 	},
 ];
 
-const fullStackProjects = [
-	{
-		title: 'Fitness Goal Tracker',
-		date: 'Oct 2024 - Dec 2024',
-		tech: ['React', 'Spring Boot', 'MySQL'],
-		description:
-			'Fitness Goal Tracker is a full-stack app for logging workouts, calories, and weight with trend dashboards. I built the core authentication flow, including registration validation and username/email login.',
-		image: '',
-		href: '/portfolio/fitness-goal-tracker',
-	},
-	{
-		title: 'MyWebsite (Yes, this site)',
-		date: 'Jan 2026 - Current',
-		tech: ['Astro', 'JavaScript', 'CSS'],
-		description:
-			'A personal portfolio website featuring project showcases, notes, and an interactive About page with custom UI and API-driven gaming widgets.',
-		image: '',
-		href: '/portfolio/my-website',
-	},
-];
-
-const analogBoardGameProjects = [
-	{
-		title: 'Date Dash',
-		date: 'Aug 2024 - Oct 2024',
-		tech: ['Board Game Design', 'Competitive Multiplayer', 'Playtesting'],
-		description:
-			'A competitive dating-race board game where players court two significant others, manage gifts and timing penalties, and race to collect enough hearts before Valentine’s Day.',
-		image: '',
-		href: '/portfolio/date-dash',
-	},
-	{
-		title: 'Love Panic',
-		date: 'Oct 2025 - Dec 2025',
-		tech: ['Party Game Design', 'Card System', 'Physical Interaction'],
-		description:
-			'A 2-player party board game about awkward crushes, featuring action cards, “ick” cards, and heart-rate-based outcomes where players try to confess first or kill their own feelings.',
-		image: '',
-		href: '/portfolio/love-panic',
-	},
-	{
-		title: 'Spell Showdown',
-		date: 'Jan 2025 - March 2025',
-		tech: ['Team Strategy Design', 'Hidden Information', 'Asymmetric Roles'],
-		description:
-			'A 2v2 wizard-apprentice strategy board game where Wizards issue constrained commands and Apprentices execute movement/combat to capture minions or destroy the enemy Crystal of Power.',
-		image: '',
-		href: '/portfolio/spell-showdown',
-	},
-];
+const projects = new Map((await getCollection('projects')).map((entry) => [entry.slug, entry]));
+const sections = sectionOrder.map(({ title, slugs }) => ({
+	title,
+	projects: slugs.map((slug) => {
+		const entry = projects.get(slug);
+		if (!entry) throw new Error(`portfolio.astro: no project "${slug}" in src/content/projects`);
+		return { ...entry.data, href: `/portfolio/${slug}` };
+	}),
+}));
+const listed = new Set(sectionOrder.flatMap((section) => section.slugs));
+const unlisted = [...projects.keys()].filter((slug) => !listed.has(slug));
+if (unlisted.length) console.warn(`portfolio.astro: projects not placed in any section: ${unlisted.join(', ')}`);
 ---
 
 <Layout title="Scott Tang – Portfolio">
@@ -122,86 +47,34 @@ const analogBoardGameProjects = [
 		</div>
 
 		<div class="portfolio-sections">
-			<section class="portfolio-section">
-				<h1 class="portfolio-section-title">Game & Graphics Projects</h1>
-				<div class="portfolio-grid">
-					{gameAndGraphicsProjects.map((project) => (
-						<a href={project.href} class="portfolio-card">
-							<div class="card-image-wrap">
-								{project.image ? (
-									<img src={project.image} alt="" class="card-image" />
-								) : (
-									<div class="card-image-placeholder" aria-hidden="true" />
-								)}
-							</div>
-							<div class="card-body">
-								<h2 class="card-title">{project.title}</h2>
-								<p class="card-date">{project.date}</p>
-								<ul class="card-tech-list" aria-label="Technologies">
-									{project.tech.map((t) => (
-										<li>{t}</li>
-									))}
-								</ul>
-								<p class="card-description">{project.description}</p>
-							</div>
-						</a>
-					))}
-				</div>
-			</section>
-
-			<section class="portfolio-section">
-				<h1 class="portfolio-section-title">Full-Stack Web Projects</h1>
-				<div class="portfolio-grid">
-					{fullStackProjects.map((project) => (
-						<a href={project.href} class="portfolio-card">
-							<div class="card-image-wrap">
-								{project.image ? (
-									<img src={project.image} alt="" class="card-image" />
-								) : (
-									<div class="card-image-placeholder" aria-hidden="true" />
-								)}
-							</div>
-							<div class="card-body">
-								<h2 class="card-title">{project.title}</h2>
-								<p class="card-date">{project.date}</p>
-								<ul class="card-tech-list" aria-label="Technologies">
-									{project.tech.map((t) => (
-										<li>{t}</li>
-									))}
-								</ul>
-								<p class="card-description">{project.description}</p>
-							</div>
-						</a>
-					))}
-				</div>
-			</section>
-
-			<section class="portfolio-section">
-				<h1 class="portfolio-section-title">Analog & Board Game Design</h1>
-				<div class="portfolio-grid">
-					{analogBoardGameProjects.map((project) => (
-						<a href={project.href} class="portfolio-card">
-							<div class="card-image-wrap">
-								{project.image ? (
-									<img src={project.image} alt="" class="card-image" />
-								) : (
-									<div class="card-image-placeholder" aria-hidden="true" />
-								)}
-							</div>
-							<div class="card-body">
-								<h2 class="card-title">{project.title}</h2>
-								<p class="card-date">{project.date}</p>
-								<ul class="card-tech-list" aria-label="Technologies">
-									{project.tech.map((t) => (
-										<li>{t}</li>
-									))}
-								</ul>
-								<p class="card-description">{project.description}</p>
-							</div>
-						</a>
-					))}
-				</div>
-			</section>
+			{sections.map((section) => (
+				<section class="portfolio-section">
+					<h1 class="portfolio-section-title">{section.title}</h1>
+					<div class="portfolio-grid">
+						{section.projects.map((project) => (
+							<a href={project.href} class="portfolio-card">
+								<div class="card-image-wrap">
+									{project.image ? (
+										<Image src={project.image} alt={project.title} class="card-image" width={640} height={360} />
+									) : (
+										<div class="card-image-placeholder" aria-hidden="true" />
+									)}
+								</div>
+								<div class="card-body">
+									<h2 class="card-title">{project.title}</h2>
+									<p class="card-date">{project.date}</p>
+									<ul class="card-tech-list" aria-label="Technologies">
+										{project.tech.map((t) => (
+											<li>{t}</li>
+										))}
+									</ul>
+									<p class="card-description">{project.description}</p>
+								</div>
+							</a>
+						))}
+					</div>
+				</section>
+			))}
 		</div>
 	</section>
 
@@ -246,7 +119,7 @@ const analogBoardGameProjects = [
 
 		.portfolio-section-title {
 			margin: 0;
-			width: min(70rem, calc(0.65 * (100vw - 3.5rem)));
+			width: min(70rem, var(--fluid-width));
 			max-width: 70rem;
 			font-size: 1.65rem;
 			line-height: 1.2;
@@ -254,7 +127,7 @@ const analogBoardGameProjects = [
 			letter-spacing: 0.015em;
 			color: #dbe7ff;
 			text-align: center;
-			text-shadow: 0 1px 10px rgba(0, 111, 205, 0.18);
+			text-shadow: 0 1px 10px color-mix(in srgb, var(--accent) 18%, transparent);
 			padding-bottom: 0.55rem;
 			position: relative;
 		}
@@ -266,7 +139,7 @@ const analogBoardGameProjects = [
 			height: 2px;
 			margin: 0.55rem auto 0;
 			border-radius: 999px;
-			background: linear-gradient(90deg, rgba(0, 111, 205, 0.12), rgba(0, 111, 205, 0.75), rgba(0, 111, 205, 0.12));
+			background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent) 75%, transparent), color-mix(in srgb, var(--accent) 12%, transparent));
 		}
 
 		.portfolio-grid {
@@ -274,22 +147,56 @@ const analogBoardGameProjects = [
 			grid-template-columns: repeat(2, 1fr);
 			gap: 3rem 3.5rem;
 			/* Same width as title row and footer bar */
-			width: min(70rem, calc(0.65 * (100vw - 3.5rem)));
+			width: min(70rem, var(--fluid-width));
 			max-width: 70rem;
 		}
 
 		.portfolio-card {
+			position: relative;
+			isolation: isolate;
 			display: flex;
 			flex-direction: column;
-			overflow: hidden;
 			text-decoration: none;
 			color: inherit;
 			border-radius: 12px;
-			transition: opacity 0.2s, transform 0.2s;
 		}
 
-		.portfolio-card:hover {
-			opacity: 0.92;
+		/* Reddit-style hover: a soft panel fades in behind the whole card, reaching a
+		   little past its edges (stays inside the grid gap) */
+		.portfolio-card::before {
+			content: '';
+			position: absolute;
+			inset: -1rem;
+			z-index: -1;
+			border-radius: 18px;
+			background: rgba(148, 163, 184, 0.04);
+			border: 1px solid rgba(148, 163, 184, 0.07);
+			opacity: 0;
+			transform: scale(0.98);
+			transition: opacity 0.2s ease, transform 0.2s ease;
+			pointer-events: none;
+		}
+
+		.portfolio-card:hover::before,
+		.portfolio-card:focus-visible::before {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		.portfolio-card:focus-visible {
+			outline: none;
+		}
+
+		.portfolio-card:hover .card-title,
+		.portfolio-card:focus-visible .card-title {
+			color: var(--accent-hover);
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.portfolio-card::before {
+				transition: none;
+				transform: none;
+			}
 		}
 
 		.card-image-wrap {
@@ -340,14 +247,14 @@ const analogBoardGameProjects = [
 			flex-wrap: wrap;
 			gap: 0 0.75rem;
 			font-size: 0.95rem;
-			color: #a5b4fc;
+			color: var(--accent);
 			letter-spacing: 0.02em;
 		}
 
 		.card-tech-list li + li::before {
 			content: '·';
 			margin-right: 0.75rem;
-			color: rgba(165, 180, 252, 0.6);
+			color: color-mix(in srgb, var(--accent) 60%, transparent);
 		}
 
 		.card-description {

@@ -1,0 +1,311 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import Wide from '../../components/mdx/Wide.astro';
+
+export async function getStaticPaths() {
+	const projects = await getCollection('projects');
+	return projects.map((entry) => ({ params: { slug: entry.slug }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { title, description, image } = entry.data;
+---
+
+<Layout title={`Scott Tang – ${title}`} textWidth="40rem">
+	<article class="project-page">
+		<header class="project-header">
+			{image ? (
+				<div class="project-banner">
+					<div class="project-banner-media" aria-hidden="true">
+						{/* Blurred copy fills the sides on screens wider than the sharp image */}
+						<Image src={image} alt="" width={800} class="project-hero banner-fill" loading="eager" />
+						<Image
+							src={image}
+							alt=""
+							class="project-hero banner-sharp"
+							widths={[800, 1200, 1600, 2240]}
+							sizes="(max-width: 1600px) 100vw, 1600px"
+							loading="eager"
+						/>
+					</div>
+					<div class="project-banner-text">
+						<p class="breadcrumb">
+							<a href="/portfolio" class="breadcrumb-parent">Portfolio</a>
+							<span class="breadcrumb-sep"> /</span>
+						</p>
+						<h1>{title}</h1>
+						<p class="project-description">{description}</p>
+					</div>
+				</div>
+			) : (
+				<>
+					<p class="breadcrumb">
+						<a href="/portfolio" class="breadcrumb-parent">Portfolio</a>
+						<span class="breadcrumb-sep"> /</span>
+					</p>
+					<h1>{title}</h1>
+					<p class="project-description">{description}</p>
+				</>
+			)}
+		</header>
+
+		<div class="project-content">
+			<Content components={{ Wide }} />
+		</div>
+	</article>
+
+	<style>
+		.project-page {
+			display: flex;
+			flex-direction: column;
+			gap: 3rem;
+			/* ~70 characters per line at the body font size — comfortable reading measure */
+			width: min(40rem, var(--fluid-width));
+			max-width: 40rem;
+		}
+
+		/* Steam-style banner: the cover image spanning the full window width and
+		   running up to the very top of the page, with breadcrumb, title and
+		   description laid over it. Its bottom edge fades into the page background. */
+		.project-banner {
+			--banner-width: 100vw;
+			position: relative;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-end;
+			width: var(--banner-width);
+			/* Negative: pulls the banner out of the text column to the window edges */
+			margin-left: calc((100% - var(--banner-width)) / 2);
+			/* Cancel Layout's 4rem top padding so the image starts at the window top */
+			margin-top: -4rem;
+			min-height: clamp(22rem, 30vw, 34rem);
+			box-sizing: border-box;
+			/* Top padding clears Layout's offset; inline padding = how far the banner
+			   sticks out past the text column, so the text lines up with the body below */
+			padding: 4rem max(1.5rem, calc((var(--banner-width) - 100%) / 2)) 3rem;
+			isolation: isolate;
+		}
+
+
+		.project-banner .breadcrumb,
+		.project-banner .breadcrumb-parent {
+			color: rgba(255, 255, 255, 0.6);
+		}
+
+		.project-banner .breadcrumb-parent:hover {
+			color: rgba(255, 255, 255, 0.9);
+		}
+
+		.project-banner-media {
+			position: absolute;
+			inset: 0;
+			z-index: -1;
+			overflow: hidden;
+			/* Fade the image (and its dark wash) out into the page background */
+			-webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+			mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+		}
+
+		.project-banner-media :global(img) {
+			position: absolute;
+			top: 0;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.project-banner-media :global(.banner-fill) {
+			left: 0;
+			width: 100%;
+			transform: scale(1.15);
+			filter: blur(40px) saturate(1.1) brightness(0.6);
+		}
+
+		/* Sharp image caps at 100rem so ultra-wide screens don't blow it up;
+		   its left/right edges fade into the blurred fill */
+		.project-banner-media :global(.banner-sharp) {
+			left: 50%;
+			width: min(100%, 100rem);
+			transform: translateX(-50%);
+		}
+
+		@media (min-width: 100rem) {
+			.project-banner-media :global(.banner-sharp) {
+				-webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+				mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+			}
+		}
+
+		/* Dark wash from the left for the title (and a touch from the top) */
+		.project-banner-media::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background:
+				linear-gradient(90deg, rgba(12, 15, 26, 0.88) 0%, rgba(12, 15, 26, 0.6) 40%, rgba(12, 15, 26, 0) 75%),
+				linear-gradient(180deg, rgba(12, 15, 26, 0.35) 0%, rgba(12, 15, 26, 0) 30%);
+		}
+
+		.project-banner-text {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+			max-width: 34rem;
+			text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+		}
+
+		.project-banner .project-description {
+			color: rgba(255, 255, 255, 0.88);
+		}
+
+		.project-header {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.breadcrumb {
+			margin: 0;
+			font-size: 1.2rem;
+			letter-spacing: 0.02em;
+			color: rgba(255, 255, 255, 0.35);
+		}
+
+		.breadcrumb-parent {
+			color: rgba(255, 255, 255, 0.35);
+			text-decoration: none;
+			transition: color 0.2s;
+		}
+
+		.breadcrumb-parent:hover {
+			color: rgba(255, 255, 255, 0.65);
+		}
+
+		.breadcrumb-sep {
+			color: rgba(255, 255, 255, 0.2);
+		}
+
+		h1 {
+			margin: 0 0 0 -0.03em;
+			padding: 0;
+			font-size: 3.4rem;
+			line-height: 1.15;
+			color: #fafafa;
+		}
+
+		.project-date {
+			margin: 0;
+			font-size: 1rem;
+			color: rgba(255, 255, 255, 0.45);
+		}
+
+		.tech-list {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0 0.75rem;
+			font-size: 0.95rem;
+			color: var(--accent);
+			letter-spacing: 0.02em;
+		}
+
+		.tech-list li + li::before {
+			content: '·';
+			margin-right: 0.75rem;
+			color: color-mix(in srgb, var(--accent) 60%, transparent);
+		}
+
+		.project-description {
+			margin: 0.25rem 0 0;
+			font-size: 1.05rem;
+			line-height: 1.65;
+			color: rgba(255, 255, 255, 0.8);
+		}
+
+
+		.project-content {
+			font-size: 1.1rem;
+			line-height: 1.75;
+			color: rgba(255, 255, 255, 0.85);
+		}
+
+		.project-content :global(h2) {
+			margin: 2.5rem 0 0.6rem;
+			font-size: 1.4rem;
+			color: #dbe7ff;
+		}
+
+		.project-content :global(h3) {
+			margin: 1.75rem 0 0.4rem;
+			font-size: 1.15rem;
+			color: #dbe7ff;
+		}
+
+		.project-content :global(p) {
+			margin: 0 0 1rem;
+		}
+
+		.project-content :global(ul),
+		.project-content :global(ol) {
+			padding-left: 1.5rem;
+			margin: 0 0 1rem;
+		}
+
+		.project-content :global(:not(pre) > code) {
+			padding: 0.1em 0.4em;
+			border-radius: 5px;
+			background: rgba(148, 163, 184, 0.14);
+			color: #e2e8f0;
+			font-size: 0.88em;
+		}
+
+		.project-content :global(pre) {
+			margin: 0 0 1.25rem;
+			padding: 1rem 1.15rem;
+			border-radius: 10px;
+			border: 1px solid rgba(148, 163, 184, 0.12);
+			font-size: 0.85rem;
+			line-height: 1.6;
+			overflow-x: auto;
+		}
+
+		/* Plain Markdown images: at most the text width and 24rem tall, natural aspect,
+		   centered. Click-to-zoom (Layout lightbox) shows the full size.
+		   <Wide> handles the larger ones and sets its own sizing. */
+		.project-content > :global(p > img) {
+			display: block;
+			width: auto;
+			height: auto;
+			max-width: 100%;
+			max-height: 24rem;
+			margin: 0.75rem auto 1.25rem;
+			border-radius: 10px;
+		}
+
+		@media (max-width: 640px) {
+			h1 {
+				font-size: 2.2rem;
+			}
+
+			.project-banner {
+				min-height: 22rem;
+				padding-bottom: 1.5rem;
+			}
+
+			/* Text spans the whole banner here, so darken evenly instead of from the left */
+			.project-banner-media::after {
+				background: linear-gradient(180deg, rgba(12, 15, 26, 0.55) 0%, rgba(12, 15, 26, 0.45) 40%, rgba(12, 15, 26, 0.75) 100%);
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.breadcrumb-parent {
+				transition: none;
+			}
+		}
+	</style>
+</Layout>

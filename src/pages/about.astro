@@ -1,5 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import photo1 from '../assets/about/photo-1.jpg';
+import photo2 from '../assets/about/photo-2.jpg';
+import photo3 from '../assets/about/photo-3.jpg';
 ---
 
 <Layout title="Scott Tang – About">
@@ -16,14 +20,14 @@ import Layout from '../layouts/Layout.astro';
 				<!-- About / Education + Experience -->
 				<div class="about-section about-intro">
 					<div class="about-col">
-						<p>I'm Scott!, a senior studying <strong>Computer Science (Games)</strong> at the <span class="usc">University of Southern California</span> and plan to pursue graduate study.</p>
-						<p>At <span class="usc">USC</span>, I engaged in the <strong>game community</strong> actively and spent years with Chinese Students and Scholars Association<strong>(CSSA)</strong>, helping Chinese students feel at home on campus.</p>
+						<p>I'm Scott! A master's student in <strong>Computer Graphics and Game Technology (CGGT)</strong> at the <span class="penn">University of Pennsylvania</span>, currently based in Philadelphia.</p>
+						<p>Before Penn, I graduated from <span class="usc">USC</span> with a B.S. in <strong>Computer Science (Games)</strong>, where I was active in the <strong>game community</strong> and spent years with the Chinese Students and Scholars Association (<strong>CSSA</strong>), helping Chinese students feel at home on campus.</p>
 					</div>
 					<span class="intro-deco-icon" aria-hidden="true">
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
 					</span>
 					<div class="about-col">
-						<p>Last summer, I interned at <strong>ByteDance</strong>, where I developed tools connecting Unity and an internal engine. Before that, I was at NetEase Games as game designer. Here is my <a href="/about/Scott-Tang-resume.pdf" class="about-link">resume</a>.</p>
+						<p>In summer 2025, I interned on the Douyin 3D engine team at <strong>ByteDance</strong>, where I developed tools connecting Unity and an internal engine. Before that, I was at NetEase Games as game designer. Here is my <a href="/about/Scott-Tang-resume.pdf" class="about-link">resume</a>.</p>
 					</div>
 				</div>
 			</div>
@@ -31,13 +35,13 @@ import Layout from '../layouts/Layout.astro';
 			<!-- Image gallery: between intro and interests (3 photos, square crop = trim) -->
 			<div class="about-gallery" aria-label="Photos">
 				<div class="about-gallery-item">
-					<img src="/about/photo-1.jpg" alt="At a cafe with a birdcage" width="400" height="400" />
+					<Image src={photo1} alt="At a cafe with a birdcage" width={400} height={400} />
 				</div>
 				<div class="about-gallery-item">
-					<img src="/about/photo-2.jpg" alt="With friends outdoors" width="400" height="400" />
+					<Image src={photo2} alt="With friends outdoors" width={400} height={400} />
 				</div>
 				<div class="about-gallery-item">
-					<img src="/about/photo-3.jpg" alt="In front of Manhattan Bridge" width="400" height="400" />
+					<Image src={photo3} alt="In front of Manhattan Bridge" width={400} height={400} />
 				</div>
 			</div>
 
@@ -56,7 +60,7 @@ import Layout from '../layouts/Layout.astro';
 			<div class="about-section about-contact">
 				<h2 class="about-heading">Contact</h2>
 				<p>I'm always happy to hear from new people. Feel free to reach out and say hello!</p>
-				<p>You can find me on <a href="https://www.instagram.com/ruiscott_39/" class="about-link" target="_blank" rel="noopener noreferrer">Instagram</a>, <a href="https://www.linkedin.com/in/scott-tang-gl/" class="about-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>, and <a href="https://github.com/ttocs778" class="about-link" target="_blank" rel="noopener noreferrer">GitHub</a>. Or contact me directly via <strong>Email</strong>, <strong>Phone</strong>, or <strong>WeChat</strong>.</p>
+				<p>You can find me on <a href="https://www.instagram.com/ruiscott_39/" class="about-link" target="_blank" rel="noopener noreferrer">Instagram</a>, <a href="https://www.linkedin.com/in/ttocs778/" class="about-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>, and <a href="https://github.com/ttocs778" class="about-link" target="_blank" rel="noopener noreferrer">GitHub</a>. Or contact me directly via <strong>Email</strong>, <strong>Phone</strong>, or <strong>WeChat</strong>.</p>
 				<p>
 					Email: <span class="inline-code">ruitang591@gmail.com</span><br />
 					Phone: <span class="inline-code">747-222-0001</span><br />
@@ -78,14 +82,14 @@ import Layout from '../layouts/Layout.astro';
 						</div>
 						<a href="https://steamcommunity.com/id/Scottisidiot" class="about-gaming-cta about-gaming-cta--steam" target="_blank" rel="noopener noreferrer">Add me on Steam</a>
 					</div>
-					<!-- PlayStation: replace href with your PSN profile URL if you have one -->
+					<!-- PlayStation: recently played via /api/psn-recent (needs PSN_NPSSO) -->
 					<div class="about-gaming-panel about-gaming-panel--psn">
 						<h3 class="about-gaming-platform-name">PlayStation</h3>
 						<span class="about-gaming-panel-label">Recently played</span>
-						<div class="about-gaming-recent-list">
+						<div id="psn-recent-list" class="about-gaming-recent-list" aria-live="polite">
 							<span class="about-gaming-recent-placeholder">—</span>
 						</div>
-						<a href="https://my.playstation.com/profile/ReplaceWithYourPSNID" class="about-gaming-cta about-gaming-cta--psn" target="_blank" rel="noopener noreferrer">Add me on PlayStation</a>
+						<a href="https://my.playstation.com/profile/ttocs_778" class="about-gaming-cta about-gaming-cta--psn" target="_blank" rel="noopener noreferrer">Add me on PlayStation</a>
 					</div>
 					<!-- Battle.net: static recently played list -->
 					<div class="about-gaming-panel about-gaming-panel--battlenet">
@@ -111,34 +115,42 @@ import Layout from '../layouts/Layout.astro';
 	</section>
 
 	<script>
-		(async () => {
-			const container = document.getElementById('steam-recent-list');
+		type RecentGame = { name: string; hours: number; url: string };
+
+		// Fetches one recently played game from `endpoint` and renders it into #containerId
+		async function loadRecentGame(
+			containerId: string,
+			endpoint: string,
+			platform: string,
+			toGame: (raw: any) => RecentGame,
+			emptyText: string,
+		) {
+			const container = document.getElementById(containerId);
 			if (!container) return;
 			const placeholder = container.querySelector('.about-gaming-recent-placeholder');
 			try {
-				const res = await fetch('/api/steam-recent');
+				const res = await fetch(endpoint);
 				const { games } = await res.json();
 				if (games && games.length > 0) {
 					if (placeholder) placeholder.remove();
-					const oneGame = games.slice(0, 1);
+					const oneGame: RecentGame[] = games.slice(0, 1).map(toGame);
 					container.append(
-						...oneGame.map((g: { appid: number; name: string; playtime_forever?: number }) => {
+						...oneGame.map((g) => {
 							const link = document.createElement('a');
-							link.href = `https://store.steampowered.com/app/${g.appid}`;
+							link.href = g.url;
 							link.target = '_blank';
 							link.rel = 'noopener noreferrer';
 							link.className = 'about-gaming-game';
-							link.setAttribute('aria-label', `View ${g.name} on Steam`);
+							link.setAttribute('aria-label', `View ${g.name} on ${platform}`);
 							const icon = document.createElement('span');
 							icon.className = 'about-gaming-game-icon';
 							icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>';
 							const title = document.createElement('span');
 							title.className = 'about-gaming-game-name';
 							title.textContent = g.name;
-							const totalHrs = Math.round((g.playtime_forever || 0) / 60);
 							const stats = document.createElement('span');
 							stats.className = 'about-gaming-game-stats';
-							stats.textContent = `${totalHrs} hrs total`;
+							stats.textContent = `${g.hours} hrs total`;
 							const textBlock = document.createElement('div');
 							textBlock.className = 'about-gaming-game-text';
 							textBlock.appendChild(title);
@@ -149,12 +161,26 @@ import Layout from '../layouts/Layout.astro';
 						})
 					);
 				} else {
-					if (placeholder) placeholder.textContent = 'Nothing in the last 2 weeks';
+					if (placeholder) placeholder.textContent = emptyText;
 				}
 			} catch {
 				if (placeholder) placeholder.textContent = '—';
 			}
-		})();
+		}
+
+		loadRecentGame(
+			'steam-recent-list',
+			'/api/steam-recent',
+			'Steam',
+			(g: { appid: number; name: string; playtime_forever?: number }) => ({
+				name: g.name,
+				hours: Math.round((g.playtime_forever || 0) / 60),
+				url: `https://store.steampowered.com/app/${g.appid}`,
+			}),
+			'Nothing in the last 2 weeks',
+		);
+
+		loadRecentGame('psn-recent-list', '/api/psn-recent', 'PlayStation', (g: RecentGame) => g, '—');
 
 		// Copy Battle.net id button
 		document.querySelectorAll('.about-gaming-cta--copy').forEach((btn) => {
@@ -208,7 +234,7 @@ import Layout from '../layouts/Layout.astro';
 		}
 
 		.about-text {
-			width: min(50rem, calc(0.65 * (100vw - 3.5rem)));
+			width: min(50rem, var(--fluid-width));
 			max-width: 50rem;
 			margin-inline: auto;
 			display: flex;
@@ -279,14 +305,14 @@ import Layout from '../layouts/Layout.astro';
 		}
 
 		.about-link {
-			color: #a5b4fc;
+			color: var(--accent);
 			text-decoration: underline;
 			text-underline-offset: 0.2em;
 			transition: color 0.2s;
 		}
 
 		.about-link:hover {
-			color: #c7d2fe;
+			color: var(--accent-hover);
 		}
 
 		.visca {
@@ -302,11 +328,17 @@ import Layout from '../layouts/Layout.astro';
 			font-weight: 700;
 		}
 
+		/* Penn Blue (#011F5B) is unreadable on the dark bg; lifted to a light tint */
+		.penn {
+			color: #8fb8f0;
+			font-weight: 700;
+		}
+
 		.about-gallery {
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
 			gap: 2.5rem;
-			width: min(65rem, calc(0.65 * (100vw - 3.5rem)));
+			width: min(65rem, var(--fluid-width));
 			max-width: 65rem;
 			margin-inline: auto;
 		}
@@ -669,8 +701,15 @@ import Layout from '../layouts/Layout.astro';
 		}
 
 		@media (max-width: 900px) {
-			.about-section {
+			.about-section,
+			.about-text .about-section {
 				grid-template-columns: 1fr;
+			}
+
+			.about-section.about-intro .about-col:first-child,
+			.about-section.about-intro .about-col:last-child {
+				grid-column: auto;
+				grid-row: auto;
 			}
 
 			.about-gallery {
@@ -686,6 +725,11 @@ import Layout from '../layouts/Layout.astro';
 		@media (max-width: 560px) {
 			.about-gallery {
 				grid-template-columns: 1fr;
+			}
+
+			/* Would sit on top of the page title at this width */
+			.intro-deco-icon {
+				display: none;
 			}
 		}
 	</style>

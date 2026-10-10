@@ -1,0 +1,32 @@
+---
+// Breaks media out of the 40rem text column to 50rem, one step wider than the text.
+// Available in project MDX without an import:
+//   <Wide>
+//     ![Final board](./board-final.jpg)
+//   </Wide>
+// On mobile --fluid-width is 100%, so this collapses to the text width.
+---
+
+<div class="wide"><slot /></div>
+
+<style>
+	.wide {
+		--wide-width: min(50rem, var(--fluid-width));
+		width: var(--wide-width);
+		/* Negative when wider than the column: centers it on the column */
+		margin: 1.75rem 0 1.75rem calc((100% - var(--wide-width)) / 2);
+	}
+
+	.wide :global(p) {
+		margin: 0;
+	}
+
+	.wide :global(img),
+	.wide :global(video) {
+		display: block;
+		width: 100%;
+		height: auto;
+		margin: 0;
+		border-radius: 14px;
+	}
+</style>

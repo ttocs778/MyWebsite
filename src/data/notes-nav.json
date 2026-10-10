@@ -1,0 +1,443 @@
+{
+	"intro": [
+		"This collection started with <code>const</code>. Everyone who writes code knows this keyword, and I thought I did too. Yet every time I wanted to use it, its various uses slipped right out of my head, and I'd end up asking AI or Googling it to catch up. So I wrote one detailed note about it, then another, and the pile kept growing. I'd rather not burn AI tokens relearning something I've seen a thousand times. So far, worth it.",
+		"It covers a lot of ground now, and I'm thinking about adding things beyond my profession, like how to play support in Overwatch (lol). I'm putting this online for myself, but also for anyone who's had the same &quot;wait, I knew this&quot; moment.",
+		"Hope you enjoy it."
+	],
+	"sections": [
+		{
+			"name": "C++",
+			"pinned": [],
+			"groups": [
+				{
+					"name": "Fundamentals",
+					"items": [
+						{
+							"slug": "variables-and-basic-types",
+							"title": "Variables and basic types"
+						},
+						{
+							"slug": "operators-and-expressions",
+							"title": "Operators and expressions"
+						},
+						{
+							"slug": "control-flow",
+							"title": "Control flow"
+						},
+						{
+							"slug": "namespaces",
+							"title": "Namespaces"
+						},
+						{
+							"slug": "pass-by-value-reference-pointer",
+							"title": "Pass by value, reference, pointer"
+						},
+						{
+							"slug": "undefined-behavior",
+							"title": "Undefined behavior"
+						}
+					]
+				},
+				{
+					"name": "Keywords",
+					"items": [
+						{
+							"slug": "auto",
+							"title": "auto"
+						},
+						{
+							"slug": "const-keyword",
+							"title": "Const keyword"
+						},
+						{
+							"slug": "constexpr",
+							"title": "constexpr"
+						},
+						{
+							"slug": "enum-and-enum-class",
+							"title": "enum and enum class"
+						},
+						{
+							"slug": "explicit",
+							"title": "explicit"
+						},
+						{
+							"slug": "inline-functions",
+							"title": "inline functions"
+						},
+						{
+							"slug": "nodiscard",
+							"title": "nodiscard"
+						},
+						{
+							"slug": "noexcept",
+							"title": "noexcept"
+						},
+						{
+							"slug": "static",
+							"title": "static"
+						},
+						{
+							"slug": "using-type-alias",
+							"title": "using type alias"
+						}
+					]
+				},
+				{
+					"name": "Pointers",
+					"items": [
+						{
+							"slug": "pointer-basics",
+							"title": "Pointer basics"
+						},
+						{
+							"slug": "pointer-arithmetic",
+							"title": "Pointer arithmetic"
+						},
+						{
+							"slug": "references-vs-pointers",
+							"title": "References vs pointers"
+						},
+						{
+							"slug": "nullptr",
+							"title": "nullptr"
+						},
+						{
+							"slug": "c-style-arrays",
+							"title": "C-style arrays"
+						}
+					]
+				},
+				{
+					"name": "Functions",
+					"items": [
+						{
+							"slug": "function-declaration-vs-definition",
+							"title": "Function declaration vs definition"
+						},
+						{
+							"slug": "function-overloading",
+							"title": "Function overloading"
+						},
+						{
+							"slug": "default-arguments",
+							"title": "Default arguments"
+						}
+					]
+				},
+				{
+					"name": "OOP",
+					"items": [
+						{
+							"slug": "struct-vs-class",
+							"title": "struct vs class"
+						},
+						{
+							"slug": "members-and-access-control",
+							"title": "Members and access control"
+						},
+						{
+							"slug": "constructors-and-destructors",
+							"title": "Constructors and destructors"
+						},
+						{
+							"slug": "this-pointer",
+							"title": "this pointer"
+						},
+						{
+							"slug": "operator-overloading",
+							"title": "Operator overloading"
+						},
+						{
+							"slug": "inheritance-basics",
+							"title": "Inheritance basics"
+						},
+						{
+							"slug": "virtual-functions-and-polymorphism",
+							"title": "Virtual functions and polymorphism"
+						},
+						{
+							"slug": "final",
+							"title": "final"
+						}
+					]
+				},
+				{
+					"name": "Memory",
+					"items": [
+						{
+							"slug": "stack-vs-heap",
+							"title": "Stack vs heap"
+						},
+						{
+							"slug": "new-and-delete",
+							"title": "new and delete"
+						},
+						{
+							"slug": "memory-leaks-and-dangling-pointers",
+							"title": "Memory leaks and dangling pointers"
+						},
+						{
+							"slug": "raii",
+							"title": "RAII"
+						},
+						{
+							"slug": "rule-of-five-and-deep-copy",
+							"title": "Rule of Five and deep copy"
+						},
+						{
+							"slug": "smart-pointers",
+							"title": "Smart pointers"
+						},
+						{
+							"slug": "unique-ptr",
+							"title": "unique_ptr"
+						},
+						{
+							"slug": "shared-ptr",
+							"title": "shared_ptr"
+						},
+						{
+							"slug": "weak-ptr",
+							"title": "weak_ptr"
+						},
+						{
+							"slug": "custom-allocators",
+							"title": "Custom allocators"
+						},
+						{
+							"slug": "lvalues-and-rvalues",
+							"title": "Lvalues and rvalues"
+						}
+					]
+				},
+				{
+					"name": "Containers",
+					"items": [
+						{
+							"slug": "std-vector",
+							"title": "std::vector"
+						},
+						{
+							"slug": "std-string",
+							"title": "std::string"
+						},
+						{
+							"slug": "associative-containers",
+							"title": "Associative containers"
+						},
+						{
+							"slug": "iterators",
+							"title": "Iterators"
+						},
+						{
+							"slug": "std-initializer-list",
+							"title": "std::initializer_list"
+						},
+						{
+							"slug": "std-pair-and-std-tuple",
+							"title": "std::pair / std::tuple"
+						},
+						{
+							"slug": "std-optional",
+							"title": "std::optional"
+						}
+					]
+				},
+				{
+					"name": "Functional",
+					"items": [
+						{
+							"slug": "lambda-expressions",
+							"title": "Lambda expressions"
+						},
+						{
+							"slug": "functional-stl-algorithms",
+							"title": "Functional STL algorithms"
+						},
+						{
+							"slug": "function-pointers",
+							"title": "Function pointers"
+						},
+						{
+							"slug": "callback-functions",
+							"title": "Callback functions"
+						}
+					]
+				},
+				{
+					"name": "Templates",
+					"items": [
+						{
+							"slug": "function-templates-overload-resolution-and-specialization",
+							"title": "Function templates, overload resolution and specialization"
+						},
+						{
+							"slug": "type-traits-and-sfinae",
+							"title": "Type traits and SFINAE"
+						}
+					]
+				},
+				{
+					"name": "Compilation",
+					"items": [
+						{
+							"slug": "compilation-process",
+							"title": "Compilation process"
+						},
+						{
+							"slug": "preprocessor-directives",
+							"title": "Preprocessor directives"
+						}
+					]
+				},
+				{
+					"name": "Casting & exceptions",
+					"items": [
+						{
+							"slug": "type-casting",
+							"title": "Type casting"
+						},
+						{
+							"slug": "exception-handling",
+							"title": "Exception handling"
+						}
+					]
+				},
+				{
+					"name": "Design & practice",
+					"items": [
+						{
+							"slug": "design-patterns",
+							"title": "Design patterns"
+						},
+						{
+							"slug": "api-design-guidelines",
+							"title": "API design guidelines"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Graphics & math",
+			"pinned": [
+				{
+					"slug": "graphics-pipeline-hub",
+					"title": "Graphics Pipeline Hub"
+				}
+			],
+			"groups": [
+				{
+					"name": "Math",
+					"items": [
+						{
+							"slug": "dot-product",
+							"title": "Dot product"
+						},
+						{
+							"slug": "cross-product",
+							"title": "Cross product"
+						}
+					]
+				},
+				{
+					"name": "Transforms & geometry",
+					"items": [
+						{
+							"slug": "matrix-composition-order-srt",
+							"title": "Matrix composition order (SRT)"
+						},
+						{
+							"slug": "coordinate-spaces-rendering-pipeline",
+							"title": "Coordinate spaces (rendering pipeline)"
+						},
+						{
+							"slug": "clipping",
+							"title": "Clipping"
+						},
+						{
+							"slug": "back-face-culling",
+							"title": "Back-face culling"
+						}
+					]
+				},
+				{
+					"name": "Rasterization",
+					"items": [
+						{
+							"slug": "rasterization",
+							"title": "Rasterization"
+						},
+						{
+							"slug": "barycentric-interpolation",
+							"title": "Barycentric interpolation"
+						},
+						{
+							"slug": "perspective-correct-interpolation",
+							"title": "Perspective-correct interpolation"
+						},
+						{
+							"slug": "depth-testing-z-buffer",
+							"title": "Depth testing (Z-buffer)"
+						}
+					]
+				},
+				{
+					"name": "Shading",
+					"items": [
+						{
+							"slug": "uv-mapping",
+							"title": "UV mapping"
+						},
+						{
+							"slug": "texture-sampling",
+							"title": "Texture sampling"
+						},
+						{
+							"slug": "lighting",
+							"title": "Lighting"
+						},
+						{
+							"slug": "material-properties",
+							"title": "Material properties"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Tools & systems",
+			"pinned": [],
+			"groups": [
+				{
+					"name": "Qt / GUI",
+					"items": [
+						{
+							"slug": "qt-signals-and-slots",
+							"title": "Qt signals and slots"
+						}
+					]
+				},
+				{
+					"name": "Build tools",
+					"items": [
+						{
+							"slug": "cmake-basics",
+							"title": "CMake basics"
+						}
+					]
+				},
+				{
+					"name": "Systems",
+					"items": [
+						{
+							"slug": "program-vs-process-vs-thread",
+							"title": "Program vs process vs thread"
+						}
+					]
+				}
+			]
+		}
+	]
+}

@@ -2,6 +2,9 @@
  * Proxies Steam app image (tries header then capsule) so it loads same-origin.
  * Usage: /api/steam-img/APPID
  */
+
+// Live data: rendered on each request, not at build time.
+export const prerender = false;
 export async function GET({ params }) {
 	const resolved = typeof params.then === 'function' ? await params : params;
 	const appid = resolved.appid;

@@ -1,0 +1,150 @@
+---
+title: 'MyWebsite'
+date: 'May 2026 - Current'
+tech: ['Astro', 'JavaScript', 'CSS']
+description: 'A personal portfolio website featuring project showcases, notes, and an interactive About page with custom UI and API-driven gaming widgets.'
+image: './cover-mosaic.jpg'
+---
+
+## Why
+
+I wanted one place to show my projects properly. "Built a DX11 engine" on a resume doesn't say much, so here every project gets its own page with the details.
+
+I do graphics and games and knew basically nothing about web dev, so I learned by building this, with docs and AI helping along the way. I went with Astro because it's light and easy to pick up: it outputs plain HTML, and JavaScript only shows up where I actually need it.
+
+## What's here
+
+- **Home**: who I am.
+- **Portfolio**: one MDX file per project, with its images in the same folder.
+- **Notes**: my Obsidian notes, synced over by a script.
+- **About**: me, plus what I've been playing lately.
+
+The portfolio cards and project pages read from the same MDX frontmatter, so a project's title, tags and description live in one place:
+
+```astro
+const projects = new Map(
+  (await getCollection('projects')).map((entry) => [entry.slug, entry])
+);
+```
+
+Every page is prebuilt at deploy time. The one exception is the gaming widget.
+
+## Recently played
+
+The About page shows my latest Steam and PlayStation game. Mainly so I can find people to play with lol.
+
+![Gaming panels on the About page](./gaming-widgets.jpg)
+
+The site is static, but this data has to be live. So the API routes opt out of prerendering and run as Vercel serverless functions instead:
+
+```ts
+export const prerender = false; // runs per request, not at build time
+```
+
+**Steam** has an official API, so this one is simple. Ask for one game, and cache the answer for 5 minutes so Steam isn't hit on every page view:
+
+```ts
+const url = `.../GetRecentlyPlayedGames/v1/?key=${key}&steamid=${id}&count=1`;
+return new Response(JSON.stringify({ games: list }), {
+  headers: { 'Cache-Control': 'public, max-age=300' },
+});
+```
+
+**PlayStation** has no public API. I use `psn-api`, which goes through Sony's own login flow: an NPSSO cookie becomes an access code, and the access code becomes an access token plus a refresh token. Doing that whole chain on every request would be slow, so the tokens live in a module-level variable. A serverless instance stays warm for a while between requests, and during that time every visitor reuses the same token:
+
+```ts
+let auth = null; // survives between requests while the instance is warm
+
+async function getAccessToken(npsso) {
+  const now = Date.now();
+  if (auth && now < auth.expiresAt) return auth.accessToken;   // still valid
+
+  const tokens = auth && now < auth.refreshExpiresAt
+    ? await exchangeRefreshTokenForAuthTokens(auth.refreshToken) // cheap refresh
+    : await exchangeAccessCodeForAuthTokens(
+        await exchangeNpssoForAccessCode(npsso));                // full login
+  // ...store tokens, expiring 60s early to be safe
+}
+```
+
+If anything fails, `auth` is reset so the next request starts clean. Sony also returns playtime as an ISO duration like `PT228H56M33S`, so a small regex turns that into hours. The weak spot is the NPSSO cookie itself: it dies every ~2 months, and then I have to log in and paste a new one by hand.
+
+On the page, one function handles both platforms. Each platform just passes its endpoint and a small mapper that turns its response into the same shape (`name`, `hours`, `url`), so the rendering code doesn't care where the data came from.
+
+**Battle.net** has no API, so that panel is hard-coded. Yes, the 600 hours of Overwatch are real.
+
+## Click to zoom
+
+Click an image to see it bigger.
+
+![A photo from the About page opened in the zoom view](./lightbox.jpg)
+
+No library here. It's the browser's built-in `<dialog>` element. `showModal()` puts it in the top layer above everything, dims the page with `::backdrop`, and fires a `cancel` event on Esc, so most of the work is already done:
+
+```js
+function openZoom(src) {
+  dialogImg.src = src;
+  document.body.style.overflow = 'hidden'; // stop the page scrolling behind it
+  dialog.showModal();
+}
+
+dialog.addEventListener('cancel', closeZoom); // Esc
+dialog.addEventListener('click', closeZoom);  // click anywhere
+```
+
+A few details:
+
+- It opens `img.currentSrc`, the file the browser already loaded, so zooming never downloads anything new. The downside: the zoom is only as sharp as that file. The About photos are loaded at 400px, so they don't get much bigger. That's on my to-do list.
+- Card thumbnails and banners are excluded by selector, and any other image can opt out with `data-no-zoom`.
+- It's desktop only. It checks `matchMedia('(pointer: coarse)')` and skips touch screens, since pinch zoom already does this job better.
+
+## One width to line things up
+
+Pages have different column widths: text is 40–50rem, notes are wider, and banners are full width. I wanted them to line up and scale together instead of each page doing its own math. So there's one variable:
+
+```css
+:root { --fluid-width: calc(0.65 * (100vw - 3.5rem)); }
+@media (max-width: 768px) { :root { --fluid-width: 100%; } }
+
+.project-page { width: min(40rem, var(--fluid-width)); }
+```
+
+Every column is `min(its max, var(--fluid-width))`. On desktop it's 65% of the window up to its cap. On phones it's full width.
+
+The footer was trickier. It should be as wide as the page's **text**, not its widest image, or it looks off on every page. So each page tells the layout its text width, and the footer uses that:
+
+```astro
+<Layout textWidth="40rem">  <!-- footer gets --footer-width: 40rem -->
+```
+
+The project banners (like the one at the top of this page) break out to `100vw`. The problem is that `100vw` includes the scrollbar, so the page grows a horizontal scrollbar. `overflow-x: hidden` would fix that but also breaks `position: sticky` (the Notes sidebar uses it). `overflow-x: clip` cuts off the extra few pixels without creating a scroll container, so sticky still works.
+
+## Font flash
+
+Pages used to load in a system font and then jump to the real one. The two fonts have different widths, so the whole layout shifted, like the page zoomed out for a split second.
+
+The cause was `font-display: swap`: show a fallback right away, then swap when the real font arrives. I switched to `block`, which tells the browser to wait for the font instead. I also stopped using the package's CSS and wrote the `@font-face` myself, importing the font file with Vite's `?url` so it gets bundled with a hashed filename like every other asset:
+
+```astro
+import atkinsonLatin from '@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2?url';
+```
+
+```css
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next Variable';
+  font-display: block;      /* wait, don't swap */
+  font-weight: 200 800;     /* variable font: one file, every weight */
+  src: url(...) format('woff2-variations');
+  unicode-range: U+0000-00FF, ...; /* only download when these characters appear */
+}
+```
+
+The trade-off: on a slow connection, text stays invisible for a moment (browsers cap it at about 3 seconds). It's worth it here because the font is small. It's split by `unicode-range` into a ~34 KB Latin file and a ~19 KB extended file, and the second one only downloads if a page actually uses those characters.
+
+## Color
+
+Honestly the hardest part. Code at least throws errors. Color just looks wrong and doesn't tell you why. I tried a lot of combos (coral was a disaster) and landed on periwinkle, `#8b9cff`. Links, tags and hover states all read from one `--accent` variable, so the next time I change my mind it's a one-line fix.
+
+---
+
+This site is never really done. Will keep updating it as I go...

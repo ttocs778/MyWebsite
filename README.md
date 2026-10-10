@@ -60,4 +60,32 @@ Add several projects' description under portfolio page
 - Removed close button from zoom dialog and switched to cursor-based interaction (`zoom-in` before open, `zoom-out` while open).
 - Prevented page layout shift during zoom by reserving scrollbar gutter and locking/unlocking body scroll on open/close.
 
+## Updates (2026-04-02)
+Portfolio project detail pages, content collections, MDX, image optimization, and project cleanup.
+
+### Portfolio — Project Detail Pages
+- Added dynamic route `src/pages/portfolio/[slug].astro` that renders a detail page for every project card.
+- Detail page layout: small `Portfolio /` breadcrumb above a large `3.4rem` project title, followed by a description, then freeform MDX body content.
+- Width matches the About page paragraph column (`min(50rem, ...)`).
+- Font loading fixed: switched Atkinson Hyperlegible Next from `font-display: swap` to `font-display: block` (custom `@font-face` via Vite `?url` import) to eliminate the zoom-out flash on page load.
+
+### Content Collections + MDX
+- Installed `@astrojs/mdx@4` (Astro 5 compatible) and registered it in `astro.config.mjs`.
+- Defined a `projects` content collection in `src/content/config.ts` with schema: `title`, `date`, `tech`, `description`, `image`.
+- Created 11 `.mdx` files — one per portfolio project — each in its own named folder (`src/content/projects/<slug>/index.mdx`) so images and other per-project resources can be co-located.
+- MDX allows embedding custom Astro components (video embeds, highlight callouts, etc.) directly in project write-ups.
+
+### Image Optimization
+- Moved About page photos from `public/about/` to `src/assets/about/`.
+- Switched `<img>` tags to Astro's `<Image />` component for automatic WebP conversion, compression, and lazy loading.
+- Resume PDF stays in `public/` (no optimization needed).
+
+### Project Cleanup
+- Removed unused font packages `@fontsource/maple-mono` and `@fontsource/vt323` from dependencies and Layout import.
+- Deleted `src/components/Welcome.astro`, `src/assets/astro.svg`, and `src/assets/background.svg` — all leftover Astro starter template files.
+- Removed empty unused content directories `src/content/notes/` and `src/content/pages/`.
+- Fixed empty `name` field in `package.json` → `"scott-tang-portfolio"`.
+- Replaced placeholder caption `"just test"` in `notes.astro` with real text.
+- Confirmed `.env` is not tracked by git; Steam API credentials are safe for Vercel deployment via environment variables.
+
 
