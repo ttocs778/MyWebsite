@@ -9,6 +9,12 @@ const projects = defineCollection({
 		tech: z.array(z.string()),
 		description: z.string(),
 		image: image().optional(),
+		// Links shown under the banner title (Play, GitHub, Video...).
+		links: z.array(z.object({
+			label: z.string(),
+			url: z.string().url(),
+			icon: z.enum(['download', 'play', 'github', 'video']).optional(),
+		})).default([]),
 	}),
 });
 

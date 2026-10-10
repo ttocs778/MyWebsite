@@ -1,0 +1,38 @@
+---
+// An image with a visible caption, sized like a plain Markdown image
+// (text width, max 24rem tall). Available in project MDX without an import:
+//   <Figure caption="The first paper prototype">
+//     ![Red construction paper board](./paper-prototype.jpg)
+//   </Figure>
+// For a wide image with a caption, use <Wide caption="..."> instead.
+interface Props {
+	caption?: string;
+}
+
+const { caption } = Astro.props;
+---
+
+<figure class="figure">
+	<slot />
+	{caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+	.figure {
+		margin: 0.75rem 0 1.5rem;
+	}
+
+	.figure :global(p) {
+		margin: 0;
+	}
+
+	.figure :global(img) {
+		display: block;
+		width: auto;
+		height: auto;
+		max-width: 100%;
+		max-height: 24rem;
+		margin: 0 auto;
+		border-radius: 10px;
+	}
+</style>

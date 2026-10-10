@@ -1,13 +1,21 @@
 ---
 // Breaks media out of the 40rem text column to 50rem, one step wider than the text.
 // Available in project MDX without an import:
-//   <Wide>
+//   <Wide caption="The final board">
 //     ![Final board](./board-final.jpg)
 //   </Wide>
-// On mobile --fluid-width is 100%, so this collapses to the text width.
+// caption is optional. On mobile --fluid-width is 100%, so this collapses to the text width.
+interface Props {
+	caption?: string;
+}
+
+const { caption } = Astro.props;
 ---
 
-<div class="wide"><slot /></div>
+<figure class="wide">
+	<slot />
+	{caption && <figcaption>{caption}</figcaption>}
+</figure>
 
 <style>
 	.wide {

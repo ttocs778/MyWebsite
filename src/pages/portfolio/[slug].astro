@@ -3,6 +3,8 @@ import Layout from '../../layouts/Layout.astro';
 import { getCollection, render } from 'astro:content';
 import { Image } from 'astro:assets';
 import Wide from '../../components/mdx/Wide.astro';
+import Figure from '../../components/mdx/Figure.astro';
+import ProjectLinks from '../../components/ProjectLinks.astro';
 
 export async function getStaticPaths() {
 	const projects = await getCollection('projects');
@@ -11,7 +13,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, description, image } = entry.data;
+const { title, description, image, links } = entry.data;
 ---
 
 <Layout title={`Scott Tang – ${title}`} textWidth="40rem">
@@ -38,6 +40,7 @@ const { title, description, image } = entry.data;
 						</p>
 						<h1>{title}</h1>
 						<p class="project-description">{description}</p>
+						<ProjectLinks links={links} />
 					</div>
 				</div>
 			) : (
@@ -48,12 +51,13 @@ const { title, description, image } = entry.data;
 					</p>
 					<h1>{title}</h1>
 					<p class="project-description">{description}</p>
+					<ProjectLinks links={links} />
 				</>
 			)}
 		</header>
 
 		<div class="project-content">
-			<Content components={{ Wide }} />
+			<Content components={{ Wide, Figure }} />
 		</div>
 	</article>
 
@@ -284,6 +288,16 @@ const { title, description, image } = entry.data;
 			max-height: 24rem;
 			margin: 0.75rem auto 1.25rem;
 			border-radius: 10px;
+		}
+
+		/* Captions from <Figure caption> / <Wide caption>. Styled here, not in the
+		   components, so they always apply to MDX content. */
+		.project-content :global(figcaption) {
+			margin-top: 0.5rem;
+			text-align: center;
+			font-size: 0.85rem;
+			line-height: 1.5;
+			color: var(--muted);
 		}
 
 		@media (max-width: 640px) {

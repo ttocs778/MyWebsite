@@ -1,0 +1,82 @@
+---
+// Buttons under a project's banner title, from the MDX frontmatter `links`:
+//   links:
+//     - { label: 'Print & Play', url: 'https://...', icon: 'download' }
+// Light frosted glass tinted with the accent, so they read on any cover image.
+interface Props {
+	links: { label: string; url: string; icon?: 'download' | 'play' | 'github' | 'video' }[];
+}
+
+const { links } = Astro.props;
+
+// Feather-style 24px outline icons, drawn with currentColor
+const icons = {
+	download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+	play: '<polygon points="6 4 20 12 6 20 6 4"/>',
+	github: '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>',
+	video: '<rect x="2" y="5" width="15" height="14" rx="2"/><polygon points="22 7 17 12 22 17 22 7"/>',
+};
+---
+
+{links.length > 0 && (
+	<div class="project-links">
+		{links.map((link) => (
+			<a href={link.url} class="project-link" target="_blank" rel="noopener">
+				{link.icon && <svg viewBox="0 0 24 24" aria-hidden="true" set:html={icons[link.icon]} />}
+				{link.label}
+			</a>
+		))}
+	</div>
+)}
+
+<style>
+	.project-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 1rem;
+		text-shadow: none;
+	}
+
+	.project-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.55rem 1rem;
+		border-radius: 10px;
+		/* Light frosted glass with a hint of the accent, not a dark slab */
+		background: color-mix(in srgb, var(--accent) 5%, rgba(255, 255, 255, 0.07));
+		/* Light blur only: a strong blur flattens the cover into a solid color */
+		-webkit-backdrop-filter: blur(3px);
+		backdrop-filter: blur(3px);
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+		color: #f4f5ff;
+		font-size: 0.95rem;
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		text-decoration: none;
+		transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+	}
+
+	.project-link:hover {
+		background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.08));
+		box-shadow: 0 0 0 1px var(--accent);
+		transform: translateY(-2px);
+	}
+
+	.project-link svg {
+		width: 1.05em;
+		height: 1.05em;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2.2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.project-link {
+			transition: none;
+		}
+	}
+</style>
