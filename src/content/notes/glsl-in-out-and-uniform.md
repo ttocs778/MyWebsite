@@ -4,7 +4,7 @@ tags:
   - graphics
   - opengl
   - glsl
-updated: '2026-10-13T02:54:11.322Z'
+updated: '2026-10-13T03:14:32.291Z'
 source: GLSL in, out and uniform
 ---
 
@@ -58,4 +58,4 @@ GLint loc = uniforms.at("u_Time");
 A uniform keeps its last value until set again.
 
 ## Related
-<span class="wikilink-missing">OpenGL Center</span> · [GLSL shader conventions](/notes/glsl-shader-conventions) · [Barycentric interpolation](/notes/barycentric-interpolation) · [Associative containers](/notes/associative-containers)
+[OpenGL Hub](/notes/opengl-hub) · [GLSL shader conventions](/notes/glsl-shader-conventions) · [Barycentric interpolation](/notes/barycentric-interpolation) · [Associative containers](/notes/associative-containers)

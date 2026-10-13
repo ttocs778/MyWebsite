@@ -4,7 +4,7 @@ tags:
   - graphics
   - opengl
   - glsl
-updated: '2026-10-13T02:54:18.607Z'
+updated: '2026-10-13T03:14:32.322Z'
 source: GLSL shader conventions
 ---
 
@@ -47,4 +47,4 @@ fs_Pos = vs_Pos.xy;                 // pattern sticks to the object
 One program per vert + frag pair, switched with `glUseProgram` before each draw. One vertex shader can be attached to several programs. Each `glCreateShader` call makes exactly one shader object.
 
 ## Related
-<span class="wikilink-missing">OpenGL Center</span> · [GLSL in, out and uniform](/notes/glsl-in-out-and-uniform) · [NDC and aspect ratio correction](/notes/ndc-and-aspect-ratio-correction)
+[OpenGL Hub](/notes/opengl-hub) · [GLSL in, out and uniform](/notes/glsl-in-out-and-uniform) · [NDC and aspect ratio correction](/notes/ndc-and-aspect-ratio-correction)

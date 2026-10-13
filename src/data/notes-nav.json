@@ -407,6 +407,86 @@
 			]
 		},
 		{
+			"name": "OpenGL",
+			"pinned": [
+				{
+					"slug": "opengl-hub",
+					"title": "OpenGL Hub"
+				}
+			],
+			"groups": [
+				{
+					"name": "Workflow",
+					"items": [
+						{
+							"slug": "opengl-frame-workflow",
+							"title": "OpenGL frame workflow"
+						},
+						{
+							"slug": "qt-opengl-widget-lifecycle",
+							"title": "Qt OpenGL widget lifecycle"
+						}
+					]
+				},
+				{
+					"name": "Objects and data",
+					"items": [
+						{
+							"slug": "opengl-handles-and-state-machine",
+							"title": "OpenGL handles and state machine"
+						},
+						{
+							"slug": "opengl-buffers-and-targets",
+							"title": "OpenGL buffers and targets"
+						},
+						{
+							"slug": "vao-and-vbo",
+							"title": "VAO and VBO"
+						},
+						{
+							"slug": "ndc-and-aspect-ratio-correction",
+							"title": "NDC and aspect ratio correction"
+						}
+					]
+				},
+				{
+					"name": "API",
+					"items": [
+						{
+							"slug": "opengl-api-naming-and-call-order",
+							"title": "OpenGL API naming and call order"
+						}
+					]
+				},
+				{
+					"name": "Shaders",
+					"items": [
+						{
+							"slug": "glsl-in-out-and-uniform",
+							"title": "GLSL in, out and uniform"
+						},
+						{
+							"slug": "glsl-shader-conventions",
+							"title": "GLSL shader conventions"
+						},
+						{
+							"slug": "glsl-sin-patterns",
+							"title": "GLSL sin patterns"
+						}
+					]
+				},
+				{
+					"name": "Debugging",
+					"items": [
+						{
+							"slug": "opengl-debugging",
+							"title": "OpenGL debugging"
+						}
+					]
+				}
+			]
+		},
+		{
 			"name": "Tools & systems",
 			"pinned": [],
 			"groups": [
@@ -434,65 +514,6 @@
 						{
 							"slug": "program-vs-process-vs-thread",
 							"title": "Program vs process vs thread"
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": null,
-			"pinned": [],
-			"groups": [
-				{
-					"name": "More",
-					"items": [
-						{
-							"slug": "glsl-in-out-and-uniform",
-							"title": "GLSL in, out and uniform"
-						},
-						{
-							"slug": "glsl-shader-conventions",
-							"title": "GLSL shader conventions"
-						},
-						{
-							"slug": "glsl-sin-patterns",
-							"title": "GLSL sin patterns"
-						},
-						{
-							"slug": "ndc-and-aspect-ratio-correction",
-							"title": "NDC and aspect ratio correction"
-						},
-						{
-							"slug": "opengl-api-naming-and-call-order",
-							"title": "OpenGL API naming and call order"
-						},
-						{
-							"slug": "opengl-buffers-and-targets",
-							"title": "OpenGL buffers and targets"
-						},
-						{
-							"slug": "opengl-debugging",
-							"title": "OpenGL debugging"
-						},
-						{
-							"slug": "opengl-frame-workflow",
-							"title": "OpenGL frame workflow"
-						},
-						{
-							"slug": "opengl-handles-and-state-machine",
-							"title": "OpenGL handles and state machine"
-						},
-						{
-							"slug": "opengl-hub",
-							"title": "OpenGL Hub"
-						},
-						{
-							"slug": "qt-opengl-widget-lifecycle",
-							"title": "Qt OpenGL widget lifecycle"
-						},
-						{
-							"slug": "vao-and-vbo",
-							"title": "VAO and VBO"
 						}
 					]
 				}

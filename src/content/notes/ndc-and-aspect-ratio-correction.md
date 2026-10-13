@@ -4,7 +4,7 @@ tags:
   - graphics
   - opengl
   - math
-updated: '2026-10-13T02:54:26.989Z'
+updated: '2026-10-13T03:14:32.353Z'
 source: NDC and aspect ratio correction
 ---
 
@@ -42,4 +42,4 @@ Shader math like `length` for a ring pattern is not stretched by anything, so it
 - Transforming after the correction would rotate in the squashed space and deform the shape.
 
 ## Related
-<span class="wikilink-missing">OpenGL Center</span> · [Coordinate spaces (rendering pipeline)](/notes/coordinate-spaces-rendering-pipeline) · [Clipping](/notes/clipping) · [Matrix composition order (SRT)](/notes/matrix-composition-order-srt)
+[OpenGL Hub](/notes/opengl-hub) · [Coordinate spaces (rendering pipeline)](/notes/coordinate-spaces-rendering-pipeline) · [Clipping](/notes/clipping) · [Matrix composition order (SRT)](/notes/matrix-composition-order-srt)
