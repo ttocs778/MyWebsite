@@ -21,7 +21,8 @@ const icons = {
 {links.length > 0 && (
 	<div class="project-links">
 		{links.map((link) => (
-			<a href={link.url} class="project-link" target="_blank" rel="noopener">
+			// Every link opens in this tab, like the site's own '/play'
+			<a href={link.url} class="project-link">
 				{link.icon && <svg viewBox="0 0 24 24" aria-hidden="true" set:html={icons[link.icon]} />}
 				{link.label}
 			</a>

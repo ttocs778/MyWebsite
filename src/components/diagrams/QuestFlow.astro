@@ -1,0 +1,158 @@
+---
+// Flow diagram for the Lucky Duckies page: everything that pushes a quest goes
+// through the GameState's stack on the host, and each player's HUD shows its top.
+// Pure SVG, themed with the site tokens so it follows --accent (same style as FireFlow).
+---
+
+<figure class="quest-flow">
+	<div class="scroll">
+		<svg viewBox="0 0 640 300" role="img" aria-labelledby="quest-flow-title">
+			<title id="quest-flow-title">
+				The dialogue End node, waypoints, level triggers and puzzles all get the GameState on the host and push or
+				pop quests on its stack. The host's HUD updates from OnQuestChanged, and the client's HUD updates when the
+				replicated stack arrives in OnRep_QuestStack. Each HUD shows the top of the stack.
+			</title>
+			<defs>
+				<marker id="qf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+					<path d="M0 0 L10 5 L0 10 z" class="head" />
+				</marker>
+			</defs>
+
+			<!-- column titles -->
+			<text x="105" y="34" class="lane">Who pushes</text>
+			<text x="335" y="34" class="lane">GameState (host)</text>
+			<text x="552" y="34" class="lane">Each player's HUD</text>
+
+			<!-- sources -->
+			<rect x="20" y="62" width="170" height="38" rx="8" class="src" />
+			<text x="105" y="86" class="box-text">Dialogue End node</text>
+			<rect x="20" y="112" width="170" height="38" rx="8" class="src" />
+			<text x="105" y="136" class="box-text">Waypoint reached</text>
+			<rect x="20" y="162" width="170" height="38" rx="8" class="src" />
+			<text x="105" y="186" class="box-text">Level trigger</text>
+			<rect x="20" y="212" width="170" height="38" rx="8" class="src" />
+			<text x="105" y="236" class="box-text">Puzzle solved</text>
+
+			<line x1="190" y1="81" x2="246" y2="140" class="arrow" marker-end="url(#qf-arrow)" />
+			<line x1="190" y1="131" x2="246" y2="152" class="arrow" marker-end="url(#qf-arrow)" />
+			<line x1="190" y1="181" x2="246" y2="164" class="arrow" marker-end="url(#qf-arrow)" />
+			<line x1="190" y1="231" x2="246" y2="176" class="arrow" marker-end="url(#qf-arrow)" />
+
+			<!-- the stack -->
+			<rect x="250" y="96" width="170" height="124" rx="10" class="box" />
+			<text x="335" y="124" class="fn">QuestsStack</text>
+			<rect x="285" y="138" width="100" height="18" rx="4" class="slot top" />
+			<text x="335" y="151" class="slot-text">top: shown</text>
+			<rect x="285" y="160" width="100" height="18" rx="4" class="slot" />
+			<rect x="285" y="182" width="100" height="18" rx="4" class="slot" />
+			<text x="335" y="270" class="fn">PushQuest · PopQuest · ClearAllQuests</text>
+			<text x="335" y="290" class="note">server only</text>
+
+			<!-- to the HUDs -->
+			<rect x="480" y="72" width="145" height="46" rx="8" class="src" />
+			<text x="552" y="100" class="box-text">Host's HUD</text>
+			<rect x="480" y="190" width="145" height="46" rx="8" class="src" />
+			<text x="552" y="218" class="box-text">Client's HUD</text>
+
+			<line x1="420" y1="130" x2="476" y2="100" class="arrow" marker-end="url(#qf-arrow)" />
+			<text x="490" y="146" class="note left">OnQuestChanged</text>
+			<line x1="420" y1="190" x2="476" y2="208" class="arrow rep" marker-end="url(#qf-arrow)" />
+			<text x="490" y="176" class="note left">replicated → OnRep</text>
+			<text x="552" y="258" class="note">shows the top of the stack,</text>
+			<text x="552" y="274" class="note">hides when it's empty</text>
+		</svg>
+	</div>
+</figure>
+
+<style>
+	.quest-flow {
+		margin: 1.75rem 0;
+	}
+
+	/* On narrow screens keep the text legible and let the diagram scroll */
+	.scroll {
+		overflow-x: auto;
+		border: 1px solid var(--border-subtle);
+		border-radius: 14px;
+		background: var(--bg-alt);
+	}
+
+	svg {
+		display: block;
+		width: 100%;
+		min-width: 34rem;
+		height: auto;
+		font-family: inherit;
+	}
+
+	.lane {
+		fill: var(--text);
+		font-size: 15px;
+		font-weight: 600;
+		text-anchor: middle;
+	}
+
+	.fn {
+		fill: var(--accent);
+		font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+		font-size: 13px;
+		text-anchor: middle;
+	}
+
+	.note {
+		fill: var(--muted);
+		font-size: 12px;
+		text-anchor: middle;
+	}
+
+	.note.left {
+		text-anchor: start;
+	}
+
+	.arrow {
+		stroke: var(--accent);
+		stroke-width: 2;
+	}
+
+	.arrow.rep {
+		stroke-dasharray: 6 5;
+	}
+
+	.head {
+		fill: var(--accent);
+	}
+
+	.src {
+		fill: none;
+		stroke: var(--border-subtle);
+		stroke-width: 1.5;
+	}
+
+	.box {
+		fill: color-mix(in srgb, var(--accent) 14%, transparent);
+		stroke: var(--accent);
+		stroke-width: 1.5;
+	}
+
+	.box-text {
+		fill: var(--text);
+		font-size: 13px;
+		text-anchor: middle;
+	}
+
+	.slot {
+		fill: color-mix(in srgb, var(--accent) 10%, transparent);
+		stroke: color-mix(in srgb, var(--accent) 50%, transparent);
+		stroke-width: 1;
+	}
+
+	.slot.top {
+		fill: color-mix(in srgb, var(--accent) 35%, transparent);
+	}
+
+	.slot-text {
+		fill: var(--text);
+		font-size: 11px;
+		text-anchor: middle;
+	}
+</style>

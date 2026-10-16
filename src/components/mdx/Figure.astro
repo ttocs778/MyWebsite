@@ -5,14 +5,16 @@
 //     ![Red construction paper board](./paper-prototype.jpg)
 //   </Figure>
 // For a wide image with a caption, use <Wide caption="..."> instead.
+// `tall` lets a portrait screenshot (e.g. a node graph) go up to 40rem tall instead of 24rem.
 interface Props {
 	caption?: string;
+	tall?: boolean;
 }
 
-const { caption } = Astro.props;
+const { caption, tall = false } = Astro.props;
 ---
 
-<figure class="figure">
+<figure class:list={['figure', tall && 'is-tall']}>
 	<slot />
 	{caption && <figcaption>{caption}</figcaption>}
 </figure>
@@ -34,5 +36,9 @@ const { caption } = Astro.props;
 		max-height: 24rem;
 		margin: 0 auto;
 		border-radius: 10px;
+	}
+
+	.figure.is-tall :global(img) {
+		max-height: 40rem;
 	}
 </style>

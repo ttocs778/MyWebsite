@@ -1,0 +1,89 @@
+---
+// All the browser-playable SDL2 games, linked from the Play button on the Classic Game Remakes page.
+// The header copies the project page's (breadcrumb, title, description) with the project as the parent.
+import Layout from '../../layouts/Layout.astro';
+import Games from '../../components/mdx/Games.astro';
+---
+
+<Layout title="Scott Tang – SDL2 Games">
+	<article class="games-page">
+		<header class="project-header">
+			<p class="breadcrumb">
+				<a href="/portfolio/sdl-projects" class="breadcrumb-parent">Classic Game Remakes</a>
+				<span class="breadcrumb-sep"> /</span>
+			</p>
+			<h1>Play Them!</h1>
+			<p class="project-description">Classic game remakes in C++ and SDL2, running right in your browser.</p>
+		</header>
+		<Games />
+	</article>
+</Layout>
+
+<style>
+	/* Same layout and header styles as src/pages/portfolio/[slug].astro, at the card grid's width */
+	.games-page {
+		display: flex;
+		flex-direction: column;
+		gap: 3rem;
+		width: min(50rem, var(--fluid-width));
+	}
+
+	/* The page's gap already spaces the grid from the header */
+	.games-page :global(.games) {
+		margin-top: 0;
+	}
+
+	.project-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.breadcrumb {
+		margin: 0;
+		font-size: 1.2rem;
+		letter-spacing: 0.02em;
+		color: rgba(255, 255, 255, 0.35);
+	}
+
+	.breadcrumb-parent {
+		color: rgba(255, 255, 255, 0.35);
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+
+	.breadcrumb-parent:hover {
+		color: rgba(255, 255, 255, 0.65);
+	}
+
+	.breadcrumb-sep {
+		color: rgba(255, 255, 255, 0.2);
+	}
+
+	h1 {
+		margin: 0 0 0 -0.03em;
+		padding: 0;
+		font-size: 3.4rem;
+		line-height: 1.15;
+		color: #fafafa;
+	}
+
+	.project-description {
+		margin: 0.25rem 0 0;
+		font-size: 1.05rem;
+		line-height: 1.65;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	@media (max-width: 640px) {
+		h1 {
+			font-size: 2.2rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.breadcrumb-parent {
+			transition: none;
+		}
+	}
+</style>

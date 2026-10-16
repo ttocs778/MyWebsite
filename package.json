@@ -13,6 +13,7 @@
     "@astrojs/mdx": "^4.3.14",
     "@astrojs/vercel": "^9.0.4",
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.2.6",
+    "@fontsource/cormorant-garamond": "^5.3.0",
     "astro": "^5.17.1",
     "psn-api": "^2.18.1",
     "rehype-katex": "^7.0.1",

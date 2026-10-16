@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import { getCollection } from 'astro:content';
 
 // Card content (title, date, tech, description, image) comes from each project's
@@ -9,7 +9,7 @@ import { getCollection } from 'astro:content';
 const sectionOrder = [
 	{
 		title: 'Game & Graphics Projects',
-		slugs: ['lucky-duckies', 'dx11-engine', 'slash-bash', 'sdl-projects', 'ue-fps', 'game-collection'],
+		slugs: ['lucky-duckies', 'dx11-engine', 'slash-bash', 'sdl-projects', 'ue-fps'],
 	},
 	{
 		title: 'Full-Stack Web Projects',
@@ -27,12 +27,22 @@ const sections = sectionOrder.map(({ title, slugs }) => ({
 	projects: slugs.map((slug) => {
 		const entry = projects.get(slug);
 		if (!entry) throw new Error(`portfolio.astro: no project "${slug}" in src/content/projects`);
-		return { ...entry.data, href: `/portfolio/${slug}` };
+		// `cardImage`, when set, replaces the banner `image` on the card
+		return { ...entry.data, image: entry.data.cardImage ?? entry.data.image, slug, href: `/portfolio/${slug}` };
 	}),
 }));
 const listed = new Set(sectionOrder.flatMap((section) => section.slugs));
 const unlisted = [...projects.keys()].filter((slug) => !listed.has(slug));
 if (unlisted.length) console.warn(`portfolio.astro: projects not placed in any section: ${unlisted.join(', ')}`);
+
+// Cards with a `cardVideo` show it instead of the image; the image, at card size, is its poster
+const cardPosters = new Map();
+for (const [slug, entry] of projects) {
+	const poster = entry.data.cardImage ?? entry.data.image;
+	if (entry.data.cardVideo && poster) {
+		cardPosters.set(slug, (await getImage({ src: poster, width: 640, height: 360 })).src);
+	}
+}
 ---
 
 <Layout title="Scott Tang – Portfolio">
@@ -54,7 +64,19 @@ if (unlisted.length) console.warn(`portfolio.astro: projects not placed in any s
 						{section.projects.map((project) => (
 							<a href={project.href} class="portfolio-card">
 								<div class="card-image-wrap">
-									{project.image ? (
+									{project.cardVideo ? (
+										<video
+											class="card-image"
+											src={project.cardVideo}
+											poster={cardPosters.get(project.slug)}
+											muted
+											loop
+											playsinline
+											preload="none"
+											aria-label={project.title}
+											data-card-video
+										/>
+									) : project.image ? (
 										<Image src={project.image} alt={project.title} class="card-image" width={640} height={360} />
 									) : (
 										<div class="card-image-placeholder" aria-hidden="true" />
@@ -77,6 +99,29 @@ if (unlisted.length) console.warn(`portfolio.astro: projects not placed in any s
 			))}
 		</div>
 	</section>
+
+	<script is:inline>
+		// Card videos play only while on screen (and never with reduced motion), so the page
+		// doesn't download or decode them all at once
+		(function () {
+			var videos = document.querySelectorAll('[data-card-video]');
+			if (!videos.length || !('IntersectionObserver' in window)) return;
+			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+			var observer = new IntersectionObserver(function (entries) {
+				entries.forEach(function (entry) {
+					var video = entry.target;
+					if (entry.isIntersecting) {
+						video.muted = true;
+						var playing = video.play();
+						if (playing && playing.catch) playing.catch(function () {});
+					} else {
+						video.pause();
+					}
+				});
+			}, { threshold: 0.3 });
+			videos.forEach(function (video) { observer.observe(video); });
+		})();
+	</script>
 
 	<style>
 		.page {

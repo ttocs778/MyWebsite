@@ -1,27 +1,376 @@
 ---
 title: 'Lucky Duckies'
-date: 'Aug 2025 - Current'
+date: 'Aug 2025 - June 2026'
 tech: ['Unreal Engine 5', 'C++']
-description: 'Lucky Duckies is a chaotic co-op 3D puzzle-platformer where two rubber duck parents rescue ducklings in an over-the-top, water-soaked bathroom. I built systems & UI as the core engineer.'
-image: ''
+description: 'Lucky Duckies is a whimsical co-op adventure where two players become parent rubber duckies, herding their duckling flock through a giant bathtub full of bubbles, toys, and puzzles. I built systems & UI as the core engineer.'
+image: './hero.jpg'
+cardImage: './cover.jpg'
+bannerPosition: '65% center'
+bannerBlur: false
+links:
+  - { label: 'Play on Steam', icon: 'play', url: 'https://store.steampowered.com/app/4506950/Lucky_Duckies/' }
 ---
+import QuestFlow from '../../../components/diagrams/QuestFlow.astro';
+import talk from './talk.mp4';
+import questTalk from './quest-talk.mp4';
+import bubble from './bubble-v2.mp4';
+import questMoveShow from './quest-move-show-v2.mp4';
+import questMoveAnim from './quest-move-anim.mp4';
 
-## Overview
+Before I start, I just want to say thanks to everyone on our team. This project couldn't have happened without any of you, and it's the best project I've ever been part of. I kind of miss all the late-night debugging, the system design meetings and the UI tweaking chats... I hope everyone reading this gets a chance to play the game. It's pretty fun, not perfect, but we tried our best. Enjoy!
 
+*Lucky Duckies* is a cute, cozy co-op 3D game we made over a full year as a USC Games project, better known as AGP (Advanced Games Project). You and a friend play two rubber ducks and lead your ducklings home through a giant bathtub, with puzzles, bubbles and a scary dog chasing you along the way, either in local split-screen or online.
 
+Check our trailer:
+<Wide caption="The trailer">
+  <YouTube id="Ege3Rsj1TKc" title="Lucky Duckies trailer" />
+</Wide>
 
-## My Role
+Feel free to download and have fun!
+{/* Steam's official store widget. color-scheme: light matches the widget page, otherwise
+    the browser paints a white backdrop behind it on this dark-scheme site */}
+<iframe src="https://store.steampowered.com/widget/4506950/" width="646" height="190" style="border:0;max-width:100%;color-scheme:light" title="Lucky Duckies on Steam" loading="lazy"></iframe>
 
+As a systems/UI engineer on the team, I built the **dialogue system** with Julian and did most of the game's **UI** with Jiawei, including the HUD, the tutorials, the quest tracker, character selection and the menus.
 
+I'd like to share some highlights from that work without turning this into a 10,000-line tech blog. If you're interested, I'm happy to share more and chat!
+## Dialogue
 
-## Systems I Built
+Due to our game features, the dialogue system could stay pretty lightweight. It had to play lines in order, keep the subtitles in sync with the voice and the animation, start gameplay (like a quest) when a conversation ends, and replicate to both players. We didn't need a big narrative tool for that, so Julian and I wrote our own.
 
+### The first version
 
+Our first version ran on the Gameplay Ability System (GAS). Each NPC had an ability that played one long animation montage, and every line of dialogue was a section of that montage. The lines themselves were rows in a data table:
 
-## Challenges
+```cpp
+USTRUCT(BlueprintType)
+struct FDialogTableRow : public FTableRowBase
+{
+    FName NextDialogRowName;            // which row plays next
+    FGameplayTag SpeakerTag;            // who says it
+    FText Text;                         // the subtitle
+    TSoftObjectPtr<USoundBase> Sound;
+    TSoftObjectPtr<UAnimMontage> AnimMontage;
+    float Duration;
+};
+```
 
+Anim notifies on the montage timeline sent the next line's tag, set the subtitle and played the voice, so the text always lined up with the animation.
 
+<Wide caption="Grandma's first conversation montage. Sections 01 to 04 are the four lines; the notify tracks below send the next line's tag, play the voice and set the subtitle">
+  ![Montage timeline for AM_Grandma_Conversation_01, with four sections and notify tracks named Next Line (TagEvent), Voice and Text](./v1-timeline.png)
+</Wide>
 
-## Gallery
+Skipping a line just jumped the montage to the next section:
 
+```cpp
+void UGAP_ProvideDialog::HandleDialogSkip(FGameplayEventData Payload)
+{
+    // Only the player who started the conversation can skip it
+    if (Payload.Instigator != InteractingActor) return;
+    if (NextDialogMontageSectionName == NAME_None) return;
+
+    // Each line is a montage section, so skipping = jumping to the next one
+    GetOwnerAnimInstance()->Montage_JumpToSection(NextDialogMontageSectionName, DialogMontage);
+}
+```
+
+But we didn't want dialogue hard-coded or scattered across Blueprints. We wanted designers to write it on their own, so we rebuilt it as an Unreal plugin with a graph editor.
+
+### A graph designers can edit
+
+The plugin has two modules. The **editor** module gives designers a graph editor to build conversations right in Unreal, and the **runtime** module plays them, including network sync. Changing a line or a branch no longer needs a programmer.
+
+To use it, a designer gives a character a **Dialoger Tag** (its identity, like Dylan or Grandma) and a `DialogAsset`. The graph has three kinds of nodes: Start, Dialog and End. A Dialog node is one line, with its text, animation, voice and duration, and an End node can carry quest data.
+
+<Figure tall caption="Dylan's Level 1 conversation: Start, three lines from Dylan, then End">
+  ![Dialogue graph editor showing the Lvl1-BoatStuck asset with a Start node, three Dylan lines and an End node](./dialog-graph-crop.png)
+</Figure>
+
+The key design point is that **the node is graph structure, and the `NodeInfo` is content data**. The graph says where to go next, and the `NodeInfo` says what this line says, what it plays and when it ends. On save, the editor graph is synced into a runtime structure, so the game never runs on editor objects.
+
+<Figure caption="The NodeInfo for one of Dylan's lines: speaker tag, text, animation, sound and duration">
+  ![Dialog Node Info panel with speaker tag dialog.speaker.dylan, text "Would you mind giving it a spray?", animation AM_Dylan_Talk_Loop and sound Dylan_4](./dialog-node-info.png)
+</Figure>
+
+### Starting a conversation
+
+A conversation starts either from a trigger sphere in the level or from the player pressing interact on an NPC. Any character that implements `IDialogCharInterface` counts as a dialogue character, so the system doesn't care which NPC class it is. Both entry points end up in `ALDPlayerController::StartDialog`. It goes through the controller because, from the player's side, a conversation is a session: it involves UI, input, and who owns it in multiplayer.
+
+### Running the graph
+
+The core is `UDialogGISubsystem`, the state machine that runs the graph. `StartDialog` checks that the session, the controller and the asset are all valid, finds the Start node, and starts processing nodes one by one. The Dialog node is where the real work happens:
+
+```cpp
+void UDialogGISubsystem::ProcessDialogNode()
+{
+    // The NodeInfo is what the designer filled in for this line
+    UDialogNodeInfo* NodeInfo = CurrentDialogNode->GetNodeInfo<UDialogNodeInfo>();
+    if (!NodeInfo) return;
+
+    // Find the character in the level whose Dialoger Tag matches this line's SpeakerTag
+    IDialogCharInterface* Speaker = UDialogFunctionLibrary::GetDialogSpeakerI(this, NodeInfo->SpeakerTag);
+
+    // Pack the line's performance data and let the speaker act it out
+    FDialogActionData ActionData(*NodeInfo);
+    if (Speaker)
+    {
+        Speaker->PerformDialogAction(ActionData);
+    }
+
+    // Meanwhile the player's UI shows the subtitle
+    SetDialogText(NodeInfo);
+}
+```
+
+**The subsystem owns the graph and the session, and the speaker owns the performance.** So each line runs on two paths: the character plays the animation and voice, and the player's UI shows the subtitle. They all start and end together, sharing one duration (the voice's length, or an override). Unlike the first version, the animation is just a talk loop now, so changing a line doesn't mean editing a montage.
+
+<Figure caption="Dylan's boat-stuck conversation in game, the same graph as above. Top left: debug messages for each node">
+  <Video src={talk} tall />
+</Figure>
+
+### Timing, and starting quests
+
+After a line starts, the subsystem works out how long it lasts (the duration override, or the voice's length), picks the next node right away, and starts a timer. When the timer is up, it moves on to that node.
+
+```cpp
+void UDialogGISubsystem::ProcessCurrentNode()
+{
+    if (!CurrentDialogNode) { EndDialog(); return; }
+
+    // Online: tell the other side which node we're on (more on this below)
+    if (bReplicated) ReplicateCurrentNode();
+
+    switch (CurrentDialogNode->NodeType)
+    {
+    case EDialogNodeType::Start:
+        ProcessStartNode();
+        AutoProcessNextNode();    // pick the next node, wait, then come back here
+        break;
+    case EDialogNodeType::Dialog:
+        ProcessDialogNode();
+        AutoProcessNextNode();
+        break;
+    case EDialogNodeType::End:
+        ProcessEndNode();         // may start a quest, then closes the conversation
+        break;
+    }
+}
+```
+
+End nodes can also carry **quest data**: who receives the quest, and which quest it is. This adds more variety to our gameplay. When the conversation ends, the subsystem finds the receiver by tag and calls its `HandleQuest` to start the quest. This is also where my quest system started.
+
+<Wide caption="An End node set to Start Quest. The quest data names Grandma as the receiver, the quest tag, and the quest's own settings">
+  ![Dialogue graph with a Start Quest end node selected; the properties panel shows quest data with receiver tag dialog.speaker.grandma and quest tag npc.tasks.collection](./quest-end-node.png)
+</Wide>
+
+```cpp
+void UDialogGISubsystem::ProcessEndNode()
+{
+    if (UDialogEndNodeInfo* NodeInfo = CurrentDialogNode->GetNodeInfo<UDialogEndNodeInfo>())
+    {
+        if (UQuestDataBase* QuestData = NodeInfo->QuestData)
+        {
+            // The quest goes to whoever has the receiver tag, found the same way as a speaker
+            IDialogCharInterface* QuestReceiver = UDialogFunctionLibrary::GetDialogSpeakerI(GetGameInstance(), QuestData->QuestReceiverTag);
+            if (QuestReceiver)
+            {
+                QuestReceiver->HandleQuest(QuestData);
+            }
+        }
+    }
+    EndDialog();
+}
+```
+
+### Online
+
+Online sync comes down to three steps: the server decides who can start, the players sync which node they're on, and each side rebuilds the performance locally.
+
+**1. The server decides who starts.** The dialogue system is basically one big state machine, so only one conversation can run at a time, or they'd step on each other's nodes and subtitles. So a client can't just start one. It asks the server to lock the subsystem first, kind of like a mutex, and the server says no if something's already playing:
+
+```cpp
+void ALDPlayerController::StartDialog(UDialogAsset* DialogAsset)
+{
+    if (HasAuthority())
+    {
+        // The server can just start
+        UDialogFunctionLibrary::StartDialog(this, DialogAsset);
+    }
+    else
+    {
+        // A client remembers the asset and asks the server for the lock first
+        CachedDialogAsset = DialogAsset;
+        Server_LockDialogSubsystem();
+    }
+}
+
+void ALDPlayerController::Server_LockDialogSubsystem_Implementation()
+{
+    // TryLock fails if a conversation is running or a synced node is being handled
+    Client_HandleDialogLockResult(UDialogGISubsystem::Get(this)->TryLock());
+}
+```
+
+**2. Sync the node, not the performance.** We don't send the subtitle, the audio time or the montage progress. Every time the subsystem processes a node, only *which node* goes over the network, through a replicated property on the `PlayerState`:
+
+```cpp
+void ALDPlayerState::RequestDialogSync(UDialogGraphNodeRuntime* Node)
+{
+    if (HasAuthority())
+    {
+        // Server: set the replicated property, clients get OnRep
+        CurrentDialogNode = Node;
+    }
+    else
+    {
+        // Client: send the node up to the server
+        Server_SyncDialogNode(Node);
+    }
+}
+
+void ALDPlayerState::OnRep_CurrentDialogNode()
+{
+    // Hand the node to the GameInstance, which the dialogue subsystem listens to
+    SyncDialogNode_Internal(CurrentDialogNode);
+}
+```
+
+**3. Rebuild it locally.** The other side doesn't restart the conversation. `ProcessNodeSimulated()` just runs the synced node, so the subtitle, animation, sound and even the End node's quest all play there from the same data. **We sync the state, not the playback timeline**, which is clearer and more stable than syncing the performance. In local split-screen there's no network, so the subtitle just goes to both screens.
+
+<Wide xl caption="A split-screen conversation with Grandma. The subtitle shows on both halves, and the quest tracker is at the top">
+  <Video src={questTalk} wide />
+</Wide>
+
+### The “...” bubble
+
+When you walk up to an NPC, a “...” bubble shows up over their head, so you know you can talk to them. In split-screen each player should only see their own bubble, so every NPC has **two bubble widgets**, one for each player:
+
+```cpp
+void UNPCSpeechBubbleComp::SetupSpeechBubbles()
+{
+    // One widget component per player, set up in the NPC Blueprint
+    SpeechBubbleP1 = SpeechBubbleInterface->GetPrimaryPCSpeechBubble();
+    SpeechBubbleP2 = SpeechBubbleInterface->GetSecondaryPCSpeechBubble();
+
+    ULDFunctionLibrary::GetPlayerControllers(this, PrimaryLDPC, SecondaryLDPC);
+    if (PrimaryLDPC)
+    {
+        // Owned by player 1, so only player 1's half of the screen draws it
+        SpeechBubbleP1->SetOwnerPlayer(PrimaryLDPC->GetLocalPlayer());
+    }
+    if (SecondaryLDPC)
+    {
+        SpeechBubbleP2->SetOwnerPlayer(SecondaryLDPC->GetLocalPlayer());
+    }
+
+    // Hide both bubbles while a conversation is playing
+    DialogSubsystem->OnDialogStarted.AddUObject(this, &UNPCSpeechBubbleComp::OnDialogStarted);
+    DialogSubsystem->OnDialogEnded.AddUObject(this, &UNPCSpeechBubbleComp::OnDialogEnded);
+}
+```
+
+I first made the bubbles world-space widget components, because a 3D bubble floating in the bathtub looked really nice. But in world space, both players see the same bubble, so I couldn't show each player their own. I gave that up and switched them to screen space, with nicer UI art to make up for it.
+
+Three spheres around the NPC handle showing the bubble, getting close enough to talk, and leaving. Getting close also makes the NPC your interact target. After a conversation, the bubbles come back for anyone still nearby.
+
+<Figure caption="Grandma in the editor, with the spheres around her shown in orange">
+  ![An NPC in an empty test level with large orange sphere outlines around it](./bubble-spheres.png)
+</Figure>
+
+<Figure caption="Walking up to Dylan: the “...” bubble turns into “Dustin, Darlene...” with the interact prompt, and goes back when you walk away">
+  <Video src={bubble} tall />
+</Figure>
+
+## Quests
+
+After dialogue built, our designer wanted the game to be more “suggestive” and clear, since some playtesters said they didn't know what the point of certain tasks was. That's where the quest system came in. On screen it's just one line at the top that tells you your current goal.
+
+<Wide xl caption="In game: the quest at the top changes from “Lead Grandma Daphne…” to “Spray Dylan’s Boat” and back, then the “Duckies to Collect” panel drops in and pushes it down">
+  <Video src={questMoveShow} wide />
+</Wide>
+
+A quick aside: the quest line moves out of the way. When a collection task starts, the HUD pushes the quest down under the collection panel. When the task is done, the panel hides itself after 5 seconds and the quest slides back up:
+
+```cpp
+void ULDUIComponent::HandleStartCollection(int32 RequiredCount)
+{
+    CollectionWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+    CollectionWidget->InitializeCollection(RequiredCount);
+    // Blueprint event: WBP_Quest plays Anim_CollectionShow forward (quest moves down)
+    QuestWidget->OnCollectionVisibilityChanged(true);
+}
+
+void ULDUIComponent::HandleAutoHideCollection()   // 5 s after the task is complete
+{
+    CollectionWidget->HideUI();
+    // Same animation played in reverse (quest moves back up)
+    QuestWidget->OnCollectionVisibilityChanged(false);
+}
+```
+
+<Figure caption="Anim_CollectionShow in the UMG editor: the quest moves 220 px down over 0.25 seconds">
+  <Video src={questMoveAnim} />
+</Figure>
+
+### A stack of quests
+
+A quest is just a line of text waiting to be popped off in order, so I simply made them a **stack** on the `GameState`. The newest quest goes on top, and it gets popped once it's done. So a side task can interrupt the main goal, and once you finish it, the main goal shows up again on its own.
+
+```cpp
+void ALDGameState::PushQuest(FLDQuestData NewQuest)
+{
+    QuestsStack.Push(NewQuest);
+    OnQuestChanged.Broadcast(NewQuest);   // the HUD always shows the top
+}
+
+void ALDGameState::PopQuest()
+{
+    if (QuestsStack.IsEmpty()) return;
+    QuestsStack.Pop();
+    // Go back to the quest underneath, or an empty one (the HUD hides)
+    OnQuestChanged.Broadcast(QuestsStack.IsEmpty() ? FLDQuestData() : QuestsStack.Top());
+}
+```
+
+### Who gives you a quest
+
+Quests come from a few places. The dialogue End node can carry quest data, so a conversation can hand you a quest when it ends. A waypoint can push one when the players or Grandma reach it, and level triggers can push or clear one when you walk through them. Puzzles clear theirs when you solve them.
+
+<Wide caption="A waypoint at the tunnel. Its Quest on Reach is set to “Through the tunnel”, with a checkbox to turn the push on">
+  ![A waypoint in the level next to its Details panel, where Quest on Reach has the display text Through the tunnel and a Push Quest on Reach checkbox](./waypoint-quest.png)
+</Wide>
+
+### Online
+
+The stack is replicated on the `GameState`. The server pushes and pops, and clients rebuild the HUD in `OnRep`. The HUD widget doesn't know where quests come from. It just listens to `OnQuestChanged` and shows the top of the stack, or hides when it's empty:
+
+```cpp
+void ALDGameState::OnRep_QuestStack()
+{
+    // Clients: the stack just changed, show whatever is on top now
+    OnQuestChanged.Broadcast(QuestsStack.IsEmpty() ? FLDQuestData() : QuestsStack.Top());
+}
+
+void UWidget_Quest::OnQuestChanged(const FLDQuestData& QuestData)
+{
+    if (QuestData.DisplayText.IsEmpty())
+    {
+        SetVisibility(ESlateVisibility::Hidden);
+        return;
+    }
+    SetVisibility(ESlateVisibility::HitTestInvisible);
+    Text_QuestTitle->SetText(QuestData.DisplayText);
+}
+```
+
+<QuestFlow />
+
+## UI for split-screen and controllers
+
+<Placeholder>Section to write: HUD, menus and controller navigation in split-screen</Placeholder>
+
+## Other highlights
+
+<Placeholder>To write: Dozer health bar, duckling collection UI, save / continue</Placeholder>
 

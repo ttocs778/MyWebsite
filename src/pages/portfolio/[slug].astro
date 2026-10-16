@@ -4,7 +4,12 @@ import { getCollection, render } from 'astro:content';
 import { Image } from 'astro:assets';
 import Wide from '../../components/mdx/Wide.astro';
 import Figure from '../../components/mdx/Figure.astro';
+import YouTube from '../../components/mdx/YouTube.astro';
+import Games from '../../components/mdx/Games.astro';
+import Video from '../../components/mdx/Video.astro';
+import Placeholder from '../../components/mdx/Placeholder.astro';
 import ProjectLinks from '../../components/ProjectLinks.astro';
+import '@fontsource/cormorant-garamond/latin-500-italic.css';
 
 export async function getStaticPaths() {
 	const projects = await getCollection('projects');
@@ -13,7 +18,9 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
-const { title, description, image, links } = entry.data;
+const { title, description, image, bannerPosition, bannerBlur = true, links, team, teamLabel = 'Made with' } = entry.data;
+// Per-project crop of the banner image (CSS object-position), e.g. 'center 20%'
+const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : undefined;
 ---
 
 <Layout title={`Scott Tang – ${title}`} textWidth="40rem">
@@ -21,13 +28,14 @@ const { title, description, image, links } = entry.data;
 		<header class="project-header">
 			{image ? (
 				<div class="project-banner">
-					<div class="project-banner-media" aria-hidden="true">
+					<div class:list={['project-banner-media', !bannerBlur && 'no-blur']} aria-hidden="true">
 						{/* Blurred copy fills the sides on screens wider than the sharp image */}
-						<Image src={image} alt="" width={800} class="project-hero banner-fill" loading="eager" />
+						{bannerBlur && <Image src={image} alt="" width={800} class="project-hero banner-fill" style={bannerStyle} loading="eager" />}
 						<Image
 							src={image}
 							alt=""
 							class="project-hero banner-sharp"
+							style={bannerStyle}
 							widths={[800, 1200, 1600, 2240]}
 							sizes="(max-width: 1600px) 100vw, 1600px"
 							loading="eager"
@@ -57,7 +65,13 @@ const { title, description, image, links } = entry.data;
 		</header>
 
 		<div class="project-content">
-			<Content components={{ Wide, Figure }} />
+			{team.length > 0 && (
+				<p class="project-credits">
+					<span class="credits-label">{teamLabel}</span>
+					<span class="credits-names">{team.join(" · ")}</span>
+				</p>
+			)}
+			<Content components={{ Wide, Figure, YouTube, Games, Video, Placeholder }} />
 		</div>
 	</article>
 
@@ -118,6 +132,11 @@ const { title, description, image, links } = entry.data;
 			top: 0;
 			height: 100%;
 			object-fit: cover;
+		}
+
+		/* bannerBlur: false: plain navy past the sharp image, for art whose own edges fade to it */
+		.project-banner-media.no-blur {
+			background: rgb(12, 15, 26);
 		}
 
 		.project-banner-media :global(.banner-fill) {
@@ -240,13 +259,13 @@ const { title, description, image, links } = entry.data;
 		.project-content :global(h2) {
 			margin: 2.5rem 0 0.6rem;
 			font-size: 1.4rem;
-			color: #dbe7ff;
+			color: #b3c7ff;
 		}
 
 		.project-content :global(h3) {
 			margin: 1.75rem 0 0.4rem;
 			font-size: 1.15rem;
-			color: #dbe7ff;
+			color: #b3c7ff;
 		}
 
 		.project-content :global(p) {
@@ -277,6 +296,45 @@ const { title, description, image, links } = entry.data;
 			overflow-x: auto;
 		}
 
+		/* Markdown tables: a bordered card like the code blocks, accent-tinted header */
+		.project-content :global(table) {
+			width: 100%;
+			margin: 0 0 1.25rem;
+			border-collapse: separate;
+			border-spacing: 0;
+			border: 1px solid var(--border-subtle);
+			border-radius: 10px;
+			overflow: hidden;
+			font-size: 0.92rem;
+			line-height: 1.55;
+		}
+
+		.project-content :global(th),
+		.project-content :global(td) {
+			padding: 0.6rem 0.85rem;
+			text-align: left;
+			vertical-align: top;
+		}
+
+		.project-content :global(th) {
+			background: var(--accent-soft);
+			color: #e2e8f0;
+			font-weight: 600;
+		}
+
+		.project-content :global(td) {
+			border-top: 1px solid var(--border-subtle);
+		}
+
+		.project-content :global(td + td),
+		.project-content :global(th + th) {
+			border-left: 1px solid var(--border-subtle);
+		}
+
+		.project-content :global(tbody tr:nth-child(even)) {
+			background: rgba(148, 163, 184, 0.05);
+		}
+
 		/* Plain Markdown images: at most the text width and 24rem tall, natural aspect,
 		   centered. Click-to-zoom (Layout lightbox) shows the full size.
 		   <Wide> handles the larger ones and sets its own sizing. */
@@ -288,6 +346,26 @@ const { title, description, image, links } = entry.data;
 			max-height: 24rem;
 			margin: 0.75rem auto 1.25rem;
 			border-radius: 10px;
+		}
+
+		/* Teammate credits from frontmatter `team`, small like a film credit */
+		.project-content .project-credits {
+			margin: 0 0 2rem;
+			font-size: 0.9rem;
+			line-height: 1.6;
+			color: var(--muted);
+		}
+
+		/* Label in the body font, names in the italic serif */
+		.credits-label {
+			display: block;
+		}
+
+		.credits-names {
+			font-family: 'Cormorant Garamond', Georgia, serif;
+			font-style: italic;
+			font-weight: 500;
+			font-size: 1.15rem;
 		}
 
 		/* Captions from <Figure caption> / <Wide caption>. Styled here, not in the

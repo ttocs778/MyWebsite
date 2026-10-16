@@ -1,0 +1,126 @@
+---
+// Sequence diagram for the UE5 FPS page: how one shot travels between the
+// shooter's client, the listen server and everyone else. Pure SVG, themed with
+// the site tokens so it follows --accent.
+---
+
+<figure class="fire-flow">
+	<div class="scroll">
+		<svg viewBox="0 0 640 330" role="img" aria-labelledby="fire-flow-title">
+			<title id="fire-flow-title">
+				One shot: the client sends a Server RPC, the server spawns the bullet and checks the hit, then a Multicast
+				plays effects everywhere and replicated health and ammo update each HUD.
+			</title>
+			<defs>
+				<marker id="ff-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+					<path d="M0 0 L10 5 L0 10 z" class="head" />
+				</marker>
+			</defs>
+
+			<!-- lanes -->
+			<text x="95" y="28" class="lane">Shooter's client</text>
+			<text x="320" y="28" class="lane">Server (host)</text>
+			<text x="545" y="28" class="lane">Other clients</text>
+			<line x1="95" y1="42" x2="95" y2="318" class="life" />
+			<line x1="320" y1="42" x2="320" y2="318" class="life" />
+			<line x1="545" y1="42" x2="545" y2="318" class="life" />
+
+			<!-- 1. fire request -->
+			<text x="207" y="72" class="fn">ServerDoStartFiring()</text>
+			<text x="207" y="104" class="note">Server RPC</text>
+			<line x1="95" y1="86" x2="316" y2="86" class="arrow" marker-end="url(#ff-arrow)" />
+
+			<!-- 2. server work -->
+			<rect x="215" y="122" width="210" height="52" rx="8" class="box" />
+			<text x="320" y="144" class="box-text">spawn bullet · ammo − 1</text>
+			<text x="320" y="163" class="box-text">hit check (no friendly fire)</text>
+
+			<!-- 3. multicast effects -->
+			<text x="320" y="204" class="fn">MulticastFireProjectile()</text>
+			<line x1="320" y1="218" x2="99" y2="218" class="arrow" marker-end="url(#ff-arrow)" />
+			<line x1="320" y1="218" x2="541" y2="218" class="arrow" marker-end="url(#ff-arrow)" />
+			<text x="207" y="236" class="note">animation + sound</text>
+			<text x="433" y="236" class="note">animation + sound</text>
+
+			<!-- 4. replicated state -->
+			<text x="320" y="268" class="fn">CurrentHP · CurrentBullets</text>
+			<line x1="320" y1="282" x2="99" y2="282" class="arrow rep" marker-end="url(#ff-arrow)" />
+			<line x1="320" y1="282" x2="541" y2="282" class="arrow rep" marker-end="url(#ff-arrow)" />
+			<text x="207" y="300" class="note">replicated → OnRep updates HUD</text>
+			<text x="433" y="300" class="note">replicated → OnRep updates HUD</text>
+		</svg>
+	</div>
+</figure>
+
+<style>
+	.fire-flow {
+		margin: 1.75rem 0;
+	}
+
+	/* On narrow screens keep the text legible and let the diagram scroll */
+	.scroll {
+		overflow-x: auto;
+		border: 1px solid var(--border-subtle);
+		border-radius: 14px;
+		background: var(--bg-alt);
+	}
+
+	svg {
+		display: block;
+		width: 100%;
+		min-width: 34rem;
+		height: auto;
+		font-family: inherit;
+	}
+
+	.lane {
+		fill: var(--text);
+		font-size: 15px;
+		font-weight: 600;
+		text-anchor: middle;
+	}
+
+	.life {
+		stroke: var(--border-subtle);
+		stroke-width: 1.5;
+		stroke-dasharray: 4 5;
+	}
+
+	.fn {
+		fill: var(--accent);
+		font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+		font-size: 13px;
+		text-anchor: middle;
+	}
+
+	.note {
+		fill: var(--muted);
+		font-size: 12px;
+		text-anchor: middle;
+	}
+
+	.arrow {
+		stroke: var(--accent);
+		stroke-width: 2;
+	}
+
+	.arrow.rep {
+		stroke-dasharray: 6 5;
+	}
+
+	.head {
+		fill: var(--accent);
+	}
+
+	.box {
+		fill: color-mix(in srgb, var(--accent) 14%, transparent);
+		stroke: var(--accent);
+		stroke-width: 1.5;
+	}
+
+	.box-text {
+		fill: var(--text);
+		font-size: 13px;
+		text-anchor: middle;
+	}
+</style>

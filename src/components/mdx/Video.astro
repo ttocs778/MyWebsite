@@ -1,0 +1,68 @@
+---
+// A local video that plays by itself, muted and looping, while it's on screen, like a GIF.
+// `controls` adds the player bar (e.g. so a trailer can be unmuted; browsers only autoplay muted
+// video). Reduced motion: no autoplay, and the controls always show so it can still be played.
+// Available in project MDX without an import:
+//   import clip from './clip.mp4';
+//   <Video src={clip} />                   sized like a plain image (text width, max 24rem tall)
+//   <Wide><Video src={clip} wide controls /></Wide>  fills the wide block, with the player bar
+//   <Video src={clip} tall />              portrait clips: up to 40rem tall instead of 24rem
+// For a caption, wrap it in <Figure caption="…">.
+interface Props {
+	src: string;
+	wide?: boolean;
+	tall?: boolean;
+	controls?: boolean;
+}
+
+const { src, wide = false, tall = false, controls = false } = Astro.props;
+---
+
+<video class:list={['mdx-video', wide && 'is-wide', tall && 'is-tall']} src={src} muted loop playsinline controls={controls} preload="metadata"></video>
+<script is:inline>
+	(function () {
+		var video = document.currentScript.previousElementSibling;
+		if (!video) return;
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			video.controls = true;
+			return;
+		}
+		if (!('IntersectionObserver' in window)) {
+			video.play().catch(function () {});
+			return;
+		}
+		new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) {
+					var playing = video.play();
+					if (playing && playing.catch) playing.catch(function () {});
+				} else {
+					video.pause();
+				}
+			});
+		}, { threshold: 0.5 }).observe(video);
+	})();
+</script>
+
+<style>
+	.mdx-video {
+		display: block;
+		width: auto;
+		height: auto;
+		max-width: 100%;
+		max-height: 24rem;
+		margin: 0 auto;
+		border-radius: 10px;
+		background: #000;
+	}
+
+	.mdx-video.is-tall {
+		max-height: 40rem;
+	}
+
+	.mdx-video.is-wide {
+		width: 100%;
+		max-height: none;
+		border-radius: 14px;
+	}
+</style>

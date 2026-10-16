@@ -2,8 +2,9 @@
 title: 'MyWebsite'
 date: 'May 2026 - Current'
 tech: ['Astro', 'JavaScript', 'CSS']
-description: 'A personal portfolio website featuring project showcases, notes, and an interactive About page with custom UI and API-driven gaming widgets.'
-image: './cover-mosaic.jpg'
+description: 'A personal portfolio website featuring project showcases, notes, browser-playable games, and an interactive About page with custom UI and API-driven gaming widgets.'
+image: './cover-grid.jpg'
+cardVideo: '/videos/my-website-card.mp4'
 ---
 
 ## Why
@@ -17,6 +18,7 @@ I do graphics and games and knew basically nothing about web dev, so I learned b
 - **Home**: who I am.
 - **Portfolio**: one MDX file per project, with its images in the same folder.
 - **Notes**: my Obsidian notes, synced over by a script.
+- **Play**: my classic game remakes, running right in the browser.
 - **About**: me, plus what I've been playing lately.
 
 The portfolio cards and project pages read from the same MDX frontmatter, so a project's title, tags and description live in one place:
@@ -118,6 +120,115 @@ The footer was trickier. It should be as wide as the page's **text**, not its wi
 ```
 
 The project banners (like the one at the top of this page) break out to `100vw`. The problem is that `100vw` includes the scrollbar, so the page grows a horizontal scrollbar. `overflow-x: hidden` would fix that but also breaks `position: sticky` (the Notes sidebar uses it). `overflow-x: clip` cuts off the extra few pixels without creating a scroll container, so sticky still works.
+
+## Project pages
+
+Once I started writing the board game pages, a plain column of text and images got boring fast. So the project pages got a bunch of upgrades.
+
+### The banner
+
+The cover image runs across the whole window, Steam style, with the title and description sitting on the left.
+
+<Wide caption="The banner on the Spell Showdown page">
+  ![The Spell Showdown project page: a full-width banner with the title, description and a Rules Video button on the left](./banner.jpg)
+</Wide>
+
+The tricky part is wide screens. A 16:9 cover stretched across an ultrawide monitor looks blurry and gets cropped badly. So the banner actually draws the image twice. The back copy fills the whole width, blurred and darkened. The sharp copy on top stops at 100rem and fades out at its edges, so on a big screen you get a sharp picture in the middle and a soft glow on the sides:
+
+```css
+.banner-fill  { width: 100%; filter: blur(40px) brightness(0.6); transform: scale(1.15); }
+.banner-sharp { width: min(100%, 100rem); left: 50%; transform: translateX(-50%); }
+```
+
+The `scale(1.15)` is there because blur pulls in transparent pixels at the edges, and scaling it up hides that. On top of both there's a dark gradient from the left so the white title is always readable, and a mask fades the bottom into the page background.
+
+Not every cover works as a banner though. The Lucky Duckies key art is tall, so I added three frontmatter options: `cardImage` lets the card use a different picture, `bannerPosition` moves the crop, and `bannerBlur: false` drops the blurred copy and just goes dark on the sides. For Lucky Duckies the art sits on the right and fades into the page, so the title gets the left side to itself.
+
+<Wide caption="The Lucky Duckies banner">
+  ![The Lucky Duckies project page: tall key art on the right fading into the dark page, with the title and a Play on Steam button on the left](./banner-ld.jpg)
+</Wide>
+
+### Videos on the cards
+
+A cover image is fine, but a few seconds of gameplay says more. So a card can set `cardVideo`, a small muted loop (640x360, about 1 MB) that plays instead of the image. The image becomes its poster, so nothing looks empty while it loads. With ten cards on one page, I didn't want them all playing at once, so each one only plays while it's on screen:
+
+```js
+new IntersectionObserver((entries) => {
+  entries.forEach(({ target: video, isIntersecting }) => {
+    isIntersecting ? video.play() : video.pause();
+  });
+}, { threshold: 0.3 });
+```
+
+If you have reduced motion turned on, they don't play at all. This page's card is one too: it's the cover up there, slowly panning.
+
+<Wide caption="Cards with video loops on the Portfolio page">
+  ![Portfolio cards for Slash Bash and Classic Game Remakes showing gameplay frames instead of cover images](./card-videos.jpg)
+</Wide>
+
+### MDX components
+
+Markdown images can't do much: no caption, and they're always as wide as the text. So I made a few small components that every project page gets automatically, with no import:
+
+- `<Figure caption="...">` adds a caption. Alt text is invisible, so this is the only way to actually say something under a picture.
+- `<Wide>` lets an image break out of the 40rem text column to 50rem, for photos that need the space.
+- `<YouTube id="...">` embeds a video.
+- `<Video>` is for clips I'd normally use a GIF for. It's an mp4 that plays muted on a loop, so it looks the same, but way smaller: one 47 MB GIF came out at 3 MB. It also only plays while you can see it.
+
+The YouTube one is just an iframe, but a few details matter. It uses `youtube-nocookie.com`, so YouTube doesn't set cookies until you press play. `loading="lazy"` means the player only loads when you scroll near it, which matters because a YouTube embed is way heavier than the rest of the page. And `aspect-ratio: 16 / 9` keeps the box the right shape at any width:
+
+```astro
+<Wide caption="The rules video">
+  <YouTube id="KR1s1_OIhdY" title="Spell Showdown rules video" />
+</Wide>
+```
+
+<Wide caption="The Spell Showdown rules video, embedded in the page">
+  ![A YouTube player embedded in a project page with a caption under it](./youtube-embed.jpg)
+</Wide>
+
+### Buttons and credits
+
+Links like Print & Play, GitHub or a video go in the frontmatter, and show up as buttons under the banner description:
+
+```yaml
+links:
+  - { label: 'Print & Play', icon: 'download', url: 'https://drive.google.com/...' }
+team: ['Reagan Wang', 'Meilynn Poma', 'Zixuan Jia']
+teamLabel: 'Fellow wizards'
+```
+
+`team` is for my teammates. Most of these were team projects, and I wanted to thank them somewhere visible, kind of like movie credits, but at the start instead of the end. Each project gets its own label: "Fellow wizards" for Spell Showdown, "Fellow hopeless romantics" for Love Panic. The label uses Cormorant Garamond in italic, and that font is imported only on project pages, so other pages don't download it.
+
+<Figure caption="The credits at the top of the Spell Showdown page">
+  ![Small italic "Fellow wizards" label above three teammate names](./credits.jpg)
+</Figure>
+
+### Backwards quotes
+
+One bug I didn't see coming: some quotes on the page came out backwards. Markdown turns straight quotes `"` into curly ones, “ and ”, and it decides left or right by looking at the characters around them. That works fine for words. But the board game pages talk about “?” markers a lot, and with only a question mark inside, it guessed wrong and gave me ”?“. The fix was just typing the curly quotes myself in those spots, so there's nothing left to guess.
+
+## Playing in the browser
+
+My ITP 380 games are C++ and SDL2, so I compiled them to WebAssembly with Emscripten, and now you can play all nine of them on the [Play Them!](/play) page.
+
+<Wide caption="The Play Them! page">
+  ![A grid of game cards: Pong, Asteroids, Frogger, Mario, Pac-Man and Zelda, each with a screenshot and a one-line description](./play-page.jpg)
+</Wide>
+
+Nothing downloads until you press Play. Portal is about 28 MB, and browsers need a click before they allow sound or mouse lock anyway. A couple of things I ran into:
+
+- Emscripten looks for the game's `.data` file next to the page, not next to the game, so nothing loaded. `locateFile` points it at the game's folder:
+
+```js
+window.Module = {
+  canvas: canvas,
+  locateFile: (file) => `/play/${slug}/${file}`, // .wasm and .data live with the game
+};
+```
+
+- The games are loud, and the C++ code has no volume setting. So I patched `AudioNode.connect`: anything that connects to the speakers goes through one gain node at 0.16 first, which sounds like about 40%.
+- The C++ games don't reset themselves after a game over, so the Restart button just reloads the page lol.
 
 ## Font flash
 

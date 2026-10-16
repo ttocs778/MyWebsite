@@ -9,12 +9,28 @@ const projects = defineCollection({
 		tech: z.array(z.string()),
 		description: z.string(),
 		image: image().optional(),
+		// Optional portfolio-card image, when the card should differ from the banner `image`.
+		cardImage: image().optional(),
+		// Optional crop of the banner (CSS object-position), e.g. 'center 20%' to show more of the top.
+		bannerPosition: z.string().optional(),
+		// false = no blurred copy of the banner beside it on wide screens (plain navy instead), for
+		// banner art that already fades to dark at its left/right edges.
+		bannerBlur: z.boolean().optional(),
+		// Optional muted loop shown on the portfolio card instead of `image` (which stays the
+		// banner and the card's poster). A path in public/, e.g. '/videos/<slug>-card.mp4'; keep it
+		// small (640x360, no audio), since every card on the page can load one.
+		cardVideo: z.string().startsWith('/').optional(),
 		// Links shown under the banner title (Play, GitHub, Video...).
 		links: z.array(z.object({
 			label: z.string(),
-			url: z.string().url(),
+			// A full URL, or a path on this site like '/play'
+			url: z.union([z.string().url(), z.string().startsWith('/')]),
 			icon: z.enum(['download', 'play', 'github', 'video']).optional(),
 		})).default([]),
+		// Teammates, credited in small text at the top of the page body. Omit for solo projects.
+		team: z.array(z.string()).default([]),
+		// Heading above the team names, worded per project (defaults to "Made with").
+		teamLabel: z.string().optional(),
 	}),
 });
 

@@ -1,0 +1,409 @@
+---
+// Browser-playable SDL2 games (Emscripten builds in public/play/<slug>/).
+// Nothing downloads until the player clicks Play: browsers need that click for audio and
+// mouse capture anyway, and it keeps the bigger builds (Portal is ~28 MB) off the page load.
+import Layout from '../../layouts/Layout.astro';
+import { sdlGames, type SdlGame } from '../../data/sdl-games';
+
+export function getStaticPaths() {
+	return sdlGames.map((game) => ({ params: { game: game.slug }, props: { game } }));
+}
+
+const { game } = Astro.props as { game: SdlGame };
+const base = `/play/${game.slug}`;
+// Portal plays with the mouse, so fullscreen should also lock the pointer
+const locksPointer = game.slug === 'portal';
+---
+
+<Layout title={`Scott Tang – ${game.title}`} textWidth="64rem">
+	<main class="play-page">
+		<header class="project-header">
+			<p class="breadcrumb">
+				<a href="/play" class="breadcrumb-parent">Play Them!</a>
+				<span class="breadcrumb-sep"> /</span>
+			</p>
+			<h1>{game.title}</h1>
+			<p class="project-description">{game.blurb}</p>
+		</header>
+
+		<div
+			class="stage"
+			style={`--game-w: ${game.width}px; --game-ratio: ${game.width / game.height}; aspect-ratio: ${game.width} / ${game.height}`}
+			data-base={base}
+			data-script={`${base}/${game.slug}.js`}
+			data-lock-pointer={locksPointer ? 'true' : 'false'}
+		>
+			<img class="poster" data-no-zoom src={`${base}/poster.jpg`} alt={`${game.title} screenshot`} width={game.width} height={game.height} />
+			<button class="start-button" type="button">
+				<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4" /></svg>
+				Play
+				<span class="start-size">{game.sizeMB} MB</span>
+			</button>
+			<p class="status" role="status" hidden></p>
+			<canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()" hidden></canvas>
+		</div>
+
+		<div class="toolbar">
+			<button class="tool-button" type="button" data-action="fullscreen" disabled>Fullscreen</button>
+			<button class="tool-button" type="button" data-action="restart" disabled>Restart</button>
+		</div>
+
+		<section class="controls" aria-labelledby="controls-heading">
+			<h2 id="controls-heading">Controls</h2>
+			<dl>
+				{game.controls.map(([keys, action]) => (
+					<div class="control-row">
+						<dt>{keys}</dt>
+						<dd>{action}</dd>
+					</div>
+				))}
+			</dl>
+			<p class="keyboard-note">Needs a keyboard, so this one's for desktop.</p>
+		</section>
+	</main>
+</Layout>
+
+<script is:inline>
+	(function () {
+		var stage = document.querySelector('.stage');
+		var startButton = stage.querySelector('.start-button');
+		var poster = stage.querySelector('.poster');
+		var status = stage.querySelector('.status');
+		var canvas = document.getElementById('canvas');
+		var fullscreenButton = document.querySelector('[data-action="fullscreen"]');
+		var restartButton = document.querySelector('[data-action="restart"]');
+		var started = false;
+
+		// The games are loud, so play them at what sounds like 40%: 0.4 squared, about -16 dB (a plain 0.4
+		// is only -8 dB and still sounds loud). Anything that connects to the speakers (an
+		// AudioDestinationNode) is routed through one gain node per context instead. Patching connect()
+		// works even in browsers that won't let a page replace window.AudioContext (e.g. embedded ones).
+		var GAME_VOLUME = 0.16;
+		if (window.AudioNode && window.AudioDestinationNode) {
+			var nativeConnect = AudioNode.prototype.connect;
+			var volumeNodes = new WeakMap();
+			AudioNode.prototype.connect = function (target) {
+				if (target instanceof AudioDestinationNode) {
+					var volume = volumeNodes.get(target);
+					if (!volume) {
+						volume = target.context.createGain();
+						volume.gain.value = GAME_VOLUME;
+						nativeConnect.call(volume, target);
+						volumeNodes.set(target, volume);
+					}
+					var args = Array.prototype.slice.call(arguments);
+					args[0] = volume;
+					return nativeConnect.apply(this, args);
+				}
+				return nativeConnect.apply(this, arguments);
+			};
+		}
+
+		function showStatus(text) {
+			status.hidden = !text;
+			status.textContent = text || '';
+		}
+
+		startButton.addEventListener('click', function () {
+			if (started) return;
+			started = true;
+			startButton.hidden = true;
+			showStatus('Loading…');
+
+			// Emscripten's generated JS reads this global. locateFile points the .wasm and .data at the
+			// game's folder; the packaged .data would otherwise resolve against the page URL.
+			window.Module = {
+				canvas: canvas,
+				locateFile: function (file) { return stage.dataset.base + '/' + file; },
+				print: function (text) { console.log(text); },
+				printErr: function (text) { console.log(text); },
+				setStatus: function (text) {
+					// Progress arrives as "Downloading data... (loaded/total)" in bytes
+					var m = /\((\d+(?:\.\d+)?)\/(\d+)\)/.exec(text);
+					if (m) {
+						var mb = function (bytes) { return (bytes / 1048576).toFixed(1); };
+						showStatus('Loading ' + mb(+m[1]) + ' / ' + mb(+m[2]) + ' MB');
+					} else if (text) {
+						showStatus(text.replace(/\.\.\.$/, '…'));
+					}
+				},
+				onRuntimeInitialized: function () {
+					showStatus('');
+					poster.hidden = true;
+					canvas.hidden = false;
+					canvas.focus();
+					fullscreenButton.disabled = false;
+					restartButton.disabled = false;
+				},
+			};
+
+			var script = document.createElement('script');
+			script.src = stage.dataset.script;
+			script.async = true;
+			script.onerror = function () { showStatus('Couldn’t load the game. Try reloading the page.'); };
+			document.body.appendChild(script);
+		});
+
+		// Emscripten 6 no longer exposes Module.requestFullscreen, so use the browser API on the stage.
+		// Esc leaves fullscreen (and gives the mouse back in Portal).
+		fullscreenButton.addEventListener('click', function () {
+			var request = stage.requestFullscreen || stage.webkitRequestFullscreen;
+			if (!request) return;
+			var result = request.call(stage);
+			var afterFullscreen = function () {
+				canvas.focus();
+				if (stage.dataset.lockPointer === 'true' && canvas.requestPointerLock) canvas.requestPointerLock();
+			};
+			if (result && result.then) result.then(afterFullscreen, function () {});
+			else afterFullscreen();
+		});
+		// The C++ games don't reset themselves after a game over, so restart means a fresh page
+		restartButton.addEventListener('click', function () { location.reload(); });
+
+		// Space and the arrow keys would scroll the page while playing
+		window.addEventListener('keydown', function (e) {
+			if (started && (e.code === 'Space' || e.code.indexOf('Arrow') === 0)) e.preventDefault();
+		});
+	})();
+</script>
+
+<style>
+	.play-page {
+		width: min(64rem, var(--fluid-width));
+		margin: 0 auto;
+		padding-bottom: 3rem;
+	}
+
+	/* Header: same breadcrumb / title / description as the games page and project pages */
+	.project-header {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin-bottom: 3rem;
+	}
+
+	.breadcrumb {
+		margin: 0;
+		font-size: 1.2rem;
+		letter-spacing: 0.02em;
+		color: rgba(255, 255, 255, 0.35);
+	}
+
+	.breadcrumb-parent {
+		color: rgba(255, 255, 255, 0.35);
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+
+	.breadcrumb-parent:hover {
+		color: rgba(255, 255, 255, 0.65);
+	}
+
+	.breadcrumb-sep {
+		color: rgba(255, 255, 255, 0.2);
+	}
+
+	h1 {
+		margin: 0 0 0 -0.03em;
+		padding: 0;
+		font-size: 3.4rem;
+		line-height: 1.15;
+		color: #fafafa;
+	}
+
+	.project-description {
+		margin: 0.25rem 0 0;
+		font-size: 1.05rem;
+		line-height: 1.65;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	/* Native game size, shrunk to fit narrower windows */
+	.stage {
+		position: relative;
+		width: min(var(--game-w), 100%);
+		margin: 0 auto;
+		background: #000;
+		border: 1px solid var(--border-subtle);
+		border-radius: 0.5rem;
+		overflow: hidden;
+	}
+
+	/* The canvas must stay free of borders and padding, or mouse coordinates drift */
+	.poster,
+	#canvas {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border: 0;
+		padding: 0;
+	}
+
+	.poster {
+		object-fit: cover;
+		filter: brightness(0.55);
+	}
+
+	#canvas:focus {
+		outline: none;
+	}
+
+	/* Fullscreen: fill the screen in black, game scaled as large as fits at its own aspect ratio */
+	.stage:fullscreen {
+		width: 100vw;
+		height: 100vh;
+		aspect-ratio: auto;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border: 0;
+		border-radius: 0;
+	}
+
+	.stage:fullscreen #canvas {
+		width: min(100vw, calc(100vh * var(--game-ratio)));
+		height: auto;
+		aspect-ratio: var(--game-ratio);
+	}
+
+	/* The display rules above would otherwise beat the hidden attribute */
+	.stage [hidden] {
+		display: none !important;
+	}
+
+	.start-button {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.8rem 1.4rem;
+		border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--accent) 22%, rgba(10, 10, 10, 0.7));
+		color: #fff;
+		font: inherit;
+		font-size: 1.1rem;
+		font-weight: 600;
+		cursor: pointer;
+		backdrop-filter: blur(6px);
+		transition: background-color 0.2s ease, border-color 0.2s ease;
+	}
+
+	.start-button:hover,
+	.start-button:focus-visible {
+		background: color-mix(in srgb, var(--accent) 38%, rgba(10, 10, 10, 0.7));
+		border-color: var(--accent);
+	}
+
+	.start-button svg {
+		width: 1.1rem;
+		height: 1.1rem;
+		fill: currentColor;
+	}
+
+	.start-size {
+		font-size: 0.85rem;
+		font-weight: 400;
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.status {
+		position: absolute;
+		inset: auto 0 0 0;
+		margin: 0;
+		padding: 0.6rem 1rem;
+		background: rgba(10, 10, 10, 0.75);
+		color: var(--text);
+		font-size: 0.95rem;
+		text-align: center;
+	}
+
+	.toolbar {
+		display: flex;
+		justify-content: center;
+		gap: 0.6rem;
+		margin-top: 0.9rem;
+	}
+
+	.tool-button {
+		padding: 0.45rem 1rem;
+		border: 1px solid var(--border-subtle);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--text);
+		font: inherit;
+		font-size: 0.9rem;
+		cursor: pointer;
+		transition: border-color 0.2s ease, color 0.2s ease;
+	}
+
+	.tool-button:hover:not(:disabled) {
+		border-color: var(--accent);
+		color: var(--accent-hover);
+	}
+
+	.tool-button:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	.controls {
+		width: min(32rem, 100%);
+		margin: 2.25rem auto 0;
+	}
+
+	.controls h2 {
+		margin: 0 0 0.75rem;
+		font-size: 1.15rem;
+		color: #fff;
+	}
+
+	.controls dl {
+		margin: 0;
+	}
+
+	.control-row {
+		display: grid;
+		grid-template-columns: 11rem 1fr;
+		gap: 1rem;
+		padding: 0.5rem 0;
+		border-bottom: 1px solid var(--border-subtle);
+	}
+
+	.control-row dt {
+		color: var(--accent);
+		font-weight: 600;
+	}
+
+	.control-row dd {
+		margin: 0;
+		color: var(--text);
+	}
+
+	.keyboard-note {
+		margin: 1rem 0 0;
+		color: var(--muted);
+		font-size: 0.9rem;
+	}
+
+	@media (max-width: 640px) {
+		h1 {
+			font-size: 2.2rem;
+		}
+
+		.control-row {
+			grid-template-columns: 8rem 1fr;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.breadcrumb-parent,
+		.start-button,
+		.tool-button {
+			transition: none;
+		}
+	}
+</style>

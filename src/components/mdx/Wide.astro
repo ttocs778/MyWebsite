@@ -5,14 +5,17 @@
 //     ![Final board](./board-final.jpg)
 //   </Wide>
 // caption is optional. On mobile --fluid-width is 100%, so this collapses to the text width.
+// `xl` goes past the fluid column, up to 70rem / 90% of the window, for footage that needs it
+// (e.g. a split-screen trailer): <Wide xl>…</Wide>
 interface Props {
 	caption?: string;
+	xl?: boolean;
 }
 
-const { caption } = Astro.props;
+const { caption, xl = false } = Astro.props;
 ---
 
-<figure class="wide">
+<figure class:list={['wide', xl && 'is-xl']}>
 	<slot />
 	{caption && <figcaption>{caption}</figcaption>}
 </figure>
@@ -23,6 +26,16 @@ const { caption } = Astro.props;
 		width: var(--wide-width);
 		/* Negative when wider than the column: centers it on the column */
 		margin: 1.75rem 0 1.75rem calc((100% - var(--wide-width)) / 2);
+	}
+
+	.wide.is-xl {
+		--wide-width: min(70rem, 90vw);
+	}
+
+	@media (max-width: 768px) {
+		.wide.is-xl {
+			--wide-width: var(--fluid-width);
+		}
 	}
 
 	.wide :global(p) {

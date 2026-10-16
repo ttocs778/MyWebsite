@@ -1,0 +1,102 @@
+---
+// State diagram for the UE5 FPS page: each capture point switches between
+// Contesting and Owned. Pure SVG, themed with the site tokens like FireFlow.
+---
+
+<figure class="capture-states">
+	<div class="scroll">
+		<svg viewBox="0 0 640 200" role="img" aria-labelledby="capture-states-title">
+			<title id="capture-states-title">
+				A capture point starts in Contesting. When progress reaches plus or minus 1 it becomes Owned. When progress
+				is pushed back to about 0 it returns to Contesting.
+			</title>
+			<defs>
+				<marker id="cs-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+					<path d="M0 0 L10 5 L0 10 z" class="head" />
+				</marker>
+			</defs>
+
+			<!-- start marker -->
+			<circle cx="40" cy="100" r="7" class="start" />
+			<line x1="47" y1="100" x2="86" y2="100" class="arrow" marker-end="url(#cs-arrow)" />
+
+			<!-- states -->
+			<rect x="90" y="62" width="190" height="76" rx="12" class="box" />
+			<text x="185" y="96" class="state">Contesting</text>
+			<text x="185" y="118" class="fn">ContestingPoints()</text>
+
+			<rect x="420" y="62" width="190" height="76" rx="12" class="box" />
+			<text x="515" y="96" class="state">Owned</text>
+			<text x="515" y="118" class="fn">OwnedByTeam()</text>
+
+			<!-- transitions -->
+			<path d="M280 82 C 330 46, 370 46, 418 82" class="arrow" marker-end="url(#cs-arrow)" />
+			<text x="350" y="38" class="note">progress reaches ±1</text>
+
+			<path d="M420 118 C 370 154, 330 154, 282 118" class="arrow" marker-end="url(#cs-arrow)" />
+			<text x="350" y="176" class="note">pushed back to ≈ 0</text>
+		</svg>
+	</div>
+</figure>
+
+<style>
+	.capture-states {
+		margin: 1.75rem 0;
+	}
+
+	/* On narrow screens keep the text legible and let the diagram scroll */
+	.scroll {
+		overflow-x: auto;
+		border: 1px solid var(--border-subtle);
+		border-radius: 14px;
+		background: var(--bg-alt);
+	}
+
+	svg {
+		display: block;
+		width: 100%;
+		min-width: 30rem;
+		height: auto;
+		font-family: inherit;
+	}
+
+	.start {
+		fill: var(--accent);
+	}
+
+	.box {
+		fill: color-mix(in srgb, var(--accent) 14%, transparent);
+		stroke: var(--accent);
+		stroke-width: 1.5;
+	}
+
+	.state {
+		fill: var(--text);
+		font-size: 16px;
+		font-weight: 600;
+		text-anchor: middle;
+	}
+
+	.fn {
+		fill: var(--accent);
+		font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+		font-size: 12px;
+		text-anchor: middle;
+	}
+
+	.note {
+		fill: var(--muted);
+		font-size: 13px;
+		text-anchor: middle;
+	}
+
+	.arrow {
+		fill: none;
+		stroke: var(--accent);
+		stroke-width: 2;
+	}
+
+	.head {
+		fill: var(--accent);
+	}
+</style>

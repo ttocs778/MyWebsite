@@ -1,0 +1,48 @@
+---
+// A responsive 16:9 YouTube embed. Available in project MDX without an import:
+//   <Wide caption="The rules video">
+//     <YouTube id="KR1s1_OIhdY" title="Spell Showdown rules video" />
+//   </Wide>
+// id is the part after youtu.be/ or watch?v=. Fills its container's width, so on its
+// own it sits in the text column; wrap it in <Wide> to break out to 50rem.
+interface Props {
+	id: string;
+	title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<div class="youtube">
+	<iframe
+		src={`https://www.youtube-nocookie.com/embed/${id}`}
+		title={title}
+		loading="lazy"
+		allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+		referrerpolicy="strict-origin-when-cross-origin"
+		allowfullscreen
+	></iframe>
+</div>
+
+<style>
+	.youtube {
+		aspect-ratio: 16 / 9;
+		width: 100%;
+		margin: 0.75rem 0 1.5rem;
+		border-radius: 14px;
+		overflow: hidden;
+		background: var(--bg-alt);
+	}
+
+	/* Inside <Wide>/<Figure> the figure supplies the spacing */
+	:global(figure) > .youtube {
+		margin: 0;
+	}
+
+	.youtube iframe {
+		display: block;
+		width: 100%;
+		height: 100%;
+		border: 0;
+	}
+</style>

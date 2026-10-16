@@ -1,0 +1,102 @@
+---
+// Cards linking to the browser-playable SDL2 games (/play/<slug>), from src/data/sdl-games.ts.
+// Breaks out to the <Wide> width. Available in project MDX without an import:
+//   <Games />
+import { sdlGames } from '../../data/sdl-games';
+---
+
+<ul class="games">
+	{sdlGames.map((game) => (
+		<li>
+			<a class="game-card" href={`/play/${game.slug}`}>
+				<img src={`/play/${game.slug}/poster.jpg`} alt="" data-no-zoom width={game.width} height={game.height} loading="lazy" />
+				<span class="game-title">
+					{game.title}
+					<svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 4 20 12 6 20 6 4" /></svg>
+				</span>
+				<span class="game-blurb">{game.blurb}</span>
+			</a>
+		</li>
+	))}
+</ul>
+
+<style>
+	.games {
+		--wide-width: min(50rem, var(--fluid-width));
+		width: var(--wide-width);
+		/* Negative when wider than the column: centers it on the column */
+		margin: 1.75rem 0 1.75rem calc((100% - var(--wide-width)) / 2);
+		padding: 0;
+		list-style: none;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+	}
+
+	.games li {
+		margin: 0;
+	}
+
+	.game-card {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		border: 1px solid var(--border-subtle);
+		border-radius: 12px;
+		overflow: hidden;
+		background: var(--bg-alt);
+		color: var(--text);
+		text-decoration: none;
+		transition: border-color 0.2s ease;
+	}
+
+	.game-card:hover,
+	.game-card:focus-visible {
+		border-color: var(--accent);
+	}
+
+	.game-card img {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 4 / 3;
+		object-fit: cover;
+		margin: 0;
+		border-radius: 0;
+		background: #000;
+	}
+
+	.game-title {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.7rem 0.85rem 0.15rem;
+		font-weight: 600;
+		color: #fff;
+	}
+
+	.game-title svg {
+		width: 0.8rem;
+		height: 0.8rem;
+		fill: var(--accent);
+	}
+
+	.game-blurb {
+		padding: 0 0.85rem 0.85rem;
+		font-size: 0.9rem;
+		line-height: 1.45;
+		color: var(--muted);
+	}
+
+	@media (max-width: 640px) {
+		.games {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.game-card {
+			transition: none;
+		}
+	}
+</style>
