@@ -387,6 +387,8 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 			font-size: 0.9rem;
 			line-height: 1.6;
 			color: var(--muted);
+			text-align: left; /* short credit line: justify would stretch the gaps */
+			hyphens: manual;
 		}
 
 		/* Label in the body font, names in the italic serif */
