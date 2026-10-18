@@ -102,13 +102,13 @@ A few details:
 
 ## One width to line things up
 
-Pages have different column widths: text is 40–50rem, notes are wider, and banners are full width. I wanted them to line up and scale together instead of each page doing its own math. So there's one variable:
+Pages have different column widths: text is 42–50rem, notes are wider, and banners are full width. I wanted them to line up and scale together instead of each page doing its own math. So there's one variable:
 
 ```css title="Layout.astro · portfolio/[slug].astro"
 :root { --fluid-width: calc(0.65 * (100vw - 3.5rem)); }
 @media (max-width: 768px) { :root { --fluid-width: 100%; } }
 
-.project-page { width: min(40rem, var(--fluid-width)); }
+.project-page { width: min(42rem, var(--fluid-width)); }
 ```
 
 Every column is `min(its max, var(--fluid-width))`. On desktop it's 65% of the window up to its cap. On phones it's full width.
@@ -116,7 +116,7 @@ Every column is `min(its max, var(--fluid-width))`. On desktop it's 65% of the w
 The footer was trickier. It should be as wide as the page's **text**, not its widest image, or it looks off on every page. So each page tells the layout its text width, and the footer uses that:
 
 ```astro title="src/pages/portfolio/[slug].astro"
-<Layout textWidth="40rem">  <!-- footer gets --footer-width: 40rem -->
+<Layout textWidth="42rem">  <!-- footer gets --footer-width: 42rem -->
 ```
 
 The project banners (like the one at the top of this page) break out to `100vw`. The problem is that `100vw` includes the scrollbar, so the page grows a horizontal scrollbar. `overflow-x: hidden` would fix that but also breaks `position: sticky` (the Notes sidebar uses it). `overflow-x: clip` cuts off the extra few pixels without creating a scroll container, so sticky still works.
@@ -171,7 +171,7 @@ If you have reduced motion turned on, they don't play at all. This page's card i
 Markdown images can't do much: no caption, and they're always as wide as the text. So I made a few small components that every project page gets automatically, with no import:
 
 - `<Figure caption="...">` adds a caption. Alt text is invisible, so this is the only way to actually say something under a picture.
-- `<Wide>` lets an image break out of the 40rem text column to 50rem, for photos that need the space.
+- `<Wide>` lets an image break out of the 42rem text column to 52rem, for photos that need the space.
 - `<YouTube id="...">` embeds a video.
 - `<Video>` is for clips I'd normally use a GIF for. It's an mp4 that plays muted on a loop, so it looks the same, but way smaller: one 47 MB GIF came out at 3 MB. It also only plays while you can see it.
 

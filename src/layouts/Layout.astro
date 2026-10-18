@@ -56,7 +56,7 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		) : (
 			<div class="pixel-bg" transition:persist="site-bg"></div>
 		)}
-		<div class="page" class:list={[!isHome && 'page-no-header', !isHome && pixelTop && 'page-pixel-top']}>
+		<div class="page" class:list={[!isHome && 'page-no-header', !isHome && pixelTop && 'page-pixel-top', !isHome && 'page-pixel-bottom']}>
 			<main class="content">
 				<slot />
 			</main>
@@ -201,6 +201,9 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		z-index: 1;
 		display: grid;
 		grid-template-rows: 1fr auto; /* content then footer */
+		/* one column that never grows past the window: an auto column stretched to fit the
+		   longest code line, which pushed project pages off the screen on phones */
+		grid-template-columns: minmax(0, 1fr);
 		min-height: 100vh;
 		padding: 2.5rem 5rem 3rem;
 		/* Full-bleed elements use 100vw, which includes the scrollbar; clip the
@@ -229,6 +232,31 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 		mask-size: 640px 400px, 100% 100%;
 		-webkit-mask-repeat: repeat, no-repeat;
 		mask-repeat: repeat, no-repeat;
+		-webkit-mask-composite: source-in;
+		mask-composite: intersect;
+	}
+
+	/* Same random pixel grid at the very bottom of every inner page (project pages included,
+	   since nothing sits behind their footer), fading in towards the bottom edge */
+	.page-pixel-bottom::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 25vh;
+		z-index: -1;
+		pointer-events: none;
+		background: var(--accent);
+		opacity: 0.22;
+		-webkit-mask-image: url('/img/pixel-tile-bottom.png'), linear-gradient(to top, #000, transparent);
+		mask-image: url('/img/pixel-tile-bottom.png'), linear-gradient(to top, #000, transparent);
+		-webkit-mask-size: 640px 400px, 100% 100%;
+		mask-size: 640px 400px, 100% 100%;
+		-webkit-mask-repeat: repeat, no-repeat;
+		mask-repeat: repeat, no-repeat;
+		-webkit-mask-position: 0 100%, 0 0;
+		mask-position: 0 100%, 0 0;
 		-webkit-mask-composite: source-in;
 		mask-composite: intersect;
 	}
@@ -360,6 +388,10 @@ const isHome = Astro.url.pathname === '/' || Astro.url.pathname === '/index.html
 
 	.content {
 		grid-row: 1;
+		/* explicit width: with auto margins it otherwise shrink-wraps its children, so a column
+		   sized min(42rem, 100%) resolved to the full 42rem and ran off phone screens */
+		width: 100%;
+		box-sizing: border-box;
 		max-width: 1280px;
 		margin: 5.25rem auto 0;
 		/* Bottom padding creates space above the footer dotted line, even on long pages */

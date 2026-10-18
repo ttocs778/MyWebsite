@@ -83,6 +83,13 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 			/* ~75 characters per line at the body font size — comfortable reading measure */
 			width: min(42rem, var(--fluid-width));
 			max-width: 42rem;
+			/* flex items default to min-width: auto, so a long code line used to stretch the whole
+			   column past the screen on phones; now the code block scrolls sideways instead */
+			min-width: 0;
+		}
+
+		.project-content {
+			min-width: 0;
 		}
 
 		/* Steam-style banner: the cover image spanning the full window width and
@@ -175,7 +182,7 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 			display: flex;
 			flex-direction: column;
 			gap: 0.5rem;
-			max-width: 36rem;
+			max-width: 34rem;
 			text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
 		}
 
