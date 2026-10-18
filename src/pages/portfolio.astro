@@ -303,8 +303,6 @@ for (const [slug, entry] of projects) {
 		}
 
 		.card-description {
-			text-align: justify;
-			hyphens: auto;
 			margin: 0.3rem 0 0;
 			font-size: 1.05rem;
 			line-height: 1.65;
@@ -315,12 +313,6 @@ for (const [slug, entry] of projects) {
 			.portfolio-grid {
 				grid-template-columns: 1fr;
 				gap: 3rem;
-			}
-		}
-		/* phones: lines are too short for justified text (big gaps), so left-align */
-		@media (max-width: 640px) {
-			.card-description {
-				text-align: left;
 			}
 		}
 	</style>
