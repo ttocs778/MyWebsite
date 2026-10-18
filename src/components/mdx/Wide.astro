@@ -1,5 +1,5 @@
 ---
-// Breaks media out of the 40rem text column to 50rem, one step wider than the text.
+// Breaks media out of the 42rem text column to 52rem, one step wider than the text.
 // Available in project MDX without an import:
 //   <Wide caption="The final board">
 //     ![Final board](./board-final.jpg)
@@ -22,7 +22,7 @@ const { caption, xl = false } = Astro.props;
 
 <style>
 	.wide {
-		--wide-width: min(50rem, var(--fluid-width));
+		--wide-width: min(52rem, var(--fluid-width));
 		width: var(--wide-width);
 		/* Negative when wider than the column: centers it on the column */
 		margin: 1.75rem 0 1.75rem calc((100% - var(--wide-width)) / 2);

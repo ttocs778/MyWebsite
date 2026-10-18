@@ -452,8 +452,8 @@ import photo3 from '../assets/about/photo-3.jpg';
 
 		:global(.about-gaming-game:hover) {
 			background: rgba(30, 41, 59, 0.7);
-			border-color: rgba(0, 111, 205, 0.45);
-			box-shadow: 0 0 20px rgba(0, 111, 205, 0.2);
+			border-color: color-mix(in srgb, var(--accent-light) 45%, transparent);
+			box-shadow: none;
 			transform: translateY(-2px);
 		}
 
@@ -491,14 +491,14 @@ import photo3 from '../assets/about/photo-3.jpg';
 			justify-content: center;
 			margin-top: 0.2rem;
 			padding: 0.35rem;
-			color: #006FCD;
+			color: var(--accent-light);
 			border-radius: 8px;
 			flex-shrink: 0;
 			transition: color 0.2s;
 		}
 
 		:global(.about-gaming-game:hover .about-gaming-game-icon) {
-			color: #38bdf8;
+			color: #fff;
 		}
 
 		:global(.about-gaming-game-icon svg) {
@@ -518,49 +518,30 @@ import photo3 from '../assets/about/photo-3.jpg';
 		}
 
 		/* CTAs: platform-colored */
+		/* same look as the project page buttons (ProjectLinks): frosted glass with an accent ring */
 		.about-gaming-cta {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
 			margin-top: 1.25rem;
-			padding: 0.75rem 1.25rem;
+			padding: 0.7rem 1.25rem;
 			font-size: 0.9rem;
 			font-weight: 600;
 			font-family: inherit;
-			color: #fff;
+			color: #f4f5ff;
 			border: none;
-			border-radius: 8px;
+			border-radius: 10px;
+			background: color-mix(in srgb, var(--accent) 5%, rgba(255, 255, 255, 0.07));
+			box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
 			text-decoration: none;
 			cursor: pointer;
-			transition: transform 0.2s, box-shadow 0.2s;
+			transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 		}
 
 		.about-gaming-cta:hover {
+			background: color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.08));
+			box-shadow: 0 0 0 1px var(--accent);
 			transform: translateY(-2px);
-		}
-
-		.about-gaming-cta--steam {
-			background: linear-gradient(135deg, #006FCD 0%, #005299 100%);
-			box-shadow: 0 4px 14px rgba(0, 111, 205, 0.4);
-		}
-		.about-gaming-cta--steam:hover {
-			box-shadow: 0 6px 20px rgba(0, 111, 205, 0.5);
-		}
-
-		.about-gaming-cta--psn {
-			background: linear-gradient(135deg, #006FCD 0%, #005299 100%);
-			box-shadow: 0 4px 14px rgba(0, 111, 205, 0.4);
-		}
-		.about-gaming-cta--psn:hover {
-			box-shadow: 0 6px 20px rgba(0, 111, 205, 0.5);
-		}
-
-		.about-gaming-cta--battlenet {
-			background: linear-gradient(135deg, #006FCD 0%, #005299 100%);
-			box-shadow: 0 4px 14px rgba(0, 111, 205, 0.4);
-		}
-		.about-gaming-cta--battlenet:hover {
-			box-shadow: 0 6px 20px rgba(0, 111, 205, 0.5);
 		}
 
 		.about-gaming-heading {
@@ -605,48 +586,25 @@ import photo3 from '../assets/about/photo-3.jpg';
 			letter-spacing: 0.02em;
 		}
 
-		/* Platform panels: shared dark base + platform accent */
+		/* Platform panels: same quiet surface for all three, a thin accent line on top */
 		.about-gaming-panel {
 			position: relative;
 			display: flex;
 			flex-direction: column;
 			padding: 1.5rem 1.25rem 1.5rem;
-			border-radius: 16px;
-			background: linear-gradient(180deg, rgba(18, 20, 26, 0.97) 0%, rgba(10, 12, 16, 0.98) 100%);
+			border-radius: 12px;
+			background: rgba(15, 23, 42, 0.55);
 			border: 1px solid rgba(148, 163, 184, 0.15);
-			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
 		}
 
 		.about-gaming-panel::before {
-			content: '';
+			content: "";
 			position: absolute;
 			top: 0;
-			left: 0;
-			right: 0;
-			height: 3px;
-			border-radius: 16px 16px 0 0;
-			opacity: 0.85;
-		}
-
-		.about-gaming-panel--steam::before {
-			background: linear-gradient(90deg, transparent 0%, #006FCD 50%, transparent 100%);
-		}
-		.about-gaming-panel--steam {
-			border-color: rgba(0, 111, 205, 0.25);
-		}
-
-		.about-gaming-panel--psn::before {
-			background: linear-gradient(90deg, transparent 0%, #006FCD 50%, transparent 100%);
-		}
-		.about-gaming-panel--psn {
-			border-color: rgba(0, 111, 205, 0.25);
-		}
-
-		.about-gaming-panel--battlenet::before {
-			background: linear-gradient(90deg, transparent 0%, #006FCD 50%, transparent 100%);
-		}
-		.about-gaming-panel--battlenet {
-			border-color: rgba(0, 111, 205, 0.25);
+			left: 1.25rem;
+			right: 1.25rem;
+			height: 1px;
+			background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent-light) 70%, transparent), transparent);
 		}
 
 		.about-gaming-panel-label {
@@ -659,9 +617,7 @@ import photo3 from '../assets/about/photo-3.jpg';
 			margin-bottom: 0.35rem;
 		}
 
-		.about-gaming-panel--steam .about-gaming-panel-label,
-		.about-gaming-panel--psn .about-gaming-panel-label,
-		.about-gaming-panel--battlenet .about-gaming-panel-label { color: #006FCD; }
+		.about-gaming-panel-label { color: var(--accent-light); }
 
 		.about-music-grid {
 			display: grid;

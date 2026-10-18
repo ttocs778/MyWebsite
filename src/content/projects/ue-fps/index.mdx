@@ -67,7 +67,7 @@ A point is either still being fought over or already owned, and the rules are di
 
 <CaptureStates />
 
-```cpp
+```cpp title="CapturePoint.cpp"
 void ACapturePoint::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -88,7 +88,7 @@ void ACapturePoint::Tick(float DeltaSeconds)
 
 The part I like most is the first row, like if blue has some progress on a point and red walks in, red can't just start filling it. Red first drains blue's progress back to 0, and only then starts counting toward red.
 
-```cpp
+```cpp title="CapturePoint.cpp"
 if (bRedOnly)
 {
 	// Red on the point: pull blue's progress back to 0 first, then grow red
@@ -112,7 +112,7 @@ Draining (0.2/s) is twice as fast as capturing (0.1/s). A capture takes 10 secon
 {/* ❓ Scott: confirm this is why you moved from overlap events to recounting every frame */}
 My first idea was to count players with overlap begin/end events, but it breaks when someone dies inside the circle, because they never "leave" it. So the point recounts every frame on the server, and skips anyone who's ragdolling, since in this template ragdoll means dead.
 
-```cpp
+```cpp title="CapturePoint.cpp"
 for (TActorIterator<AShooterCharacter> It(GetWorld()); It; ++It)
 {
 	AShooterCharacter* Char = *It;
@@ -131,7 +131,7 @@ Score runs on a 1-second timer in the GameMode, and in each tick, every point a 
 
 The HUD doesn't poll anything. The GameState fires a delegate from its OnRep, and each ring turns the signed float back into a 0–1 fill on a dynamic material, tinted by the owner:
 
-```cpp
+```cpp title="CaptureGameState.cpp"
 OutRed  = FMath::Clamp(-CaptureProgress[i], 0.f, CaptureGoal) / CaptureGoal;
 OutBlue = FMath::Clamp( CaptureProgress[i], 0.f, CaptureGoal) / CaptureGoal;
 // then: RingMaterial->SetScalarParameterValue("Progress", Fill)
@@ -157,7 +157,7 @@ Whoever hosts is the server (a listen server), and the server decides everything
 
 When you click, your client calls a Server RPC. The server runs the actual weapon logic. After spawning the bullet, it tells every machine to play the shot with a Multicast:
 
-```cpp
+```cpp title="ShooterCharacter.h · ShooterCharacter.cpp · ShooterWeapon.cpp"
 UFUNCTION(Server, Reliable)
 void ServerDoStartFiring();
 
@@ -175,7 +175,7 @@ Firing is `Reliable`, since a lost shot feels like a bug. Stopping the fire soun
 
 Hits are only checked on the server, so a client can't fake one. Friendly fire gets skipped there too:
 
-```cpp
+```cpp title="ShooterProjectile.cpp"
 if (HitShooterChar && InstigatorShooterChar &&
 	HitShooterChar->Team == InstigatorShooterChar->Team)
 {
@@ -187,7 +187,7 @@ Health, ammo and team use RepNotify, so each client updates its own HUD. Control
 
 But the host sets these values itself, so its OnRep never fires and its HUD didn't update. So on a listen server I call it by hand:
 
-```cpp
+```cpp title="ShooterWeapon.cpp"
 void AShooterWeapon::SetBullets(int32 CBullets)
 {
 	CurrentBullets = CBullets;
@@ -204,7 +204,7 @@ The packaged game runs on Epic Online Services. It all lives in a `GameInstanceS
 
 Login tries saved credentials first and only opens Epic's web login if that fails, so you only see the browser once.
 
-```cpp
+```cpp title="MultiOnlineSubsystem.cpp"
 AuthInterface->Login(MoveTemp(Params)).OnComplete([this, CredentialsType](const auto& Result)
 {
 	if (Result.IsOk())
@@ -222,7 +222,7 @@ It's also turned off in the editor (`ShouldCreateSubsystem` returns false `WITH_
 
 Hosting creates a 4-player lobby with the map name on it, then loads that map as a listen server. Joining skips any lobby whose map doesn't match your mode:
 
-```cpp
+```cpp title="MultiOnlineSubsystem.cpp"
 for (const TSharedRef<const FLobby>& Lobby : FindResults.Lobbies)
 {
 	const FSchemaVariant* MapVar = Lobby->Attributes.Find(FSchemaAttributeId(SETTING_MAPNAME));
@@ -242,7 +242,7 @@ Putting the map on the lobby means there's no separate "game mode" field to keep
 
 New players join the team with fewer people (ties go to red). Spawn points are tagged Red, Blue or BackUp in the editor. I keep your team's spawns, drop any with an enemy within 10 meters, and fall back to BackUp if nothing's left:
 
-```cpp
+```cpp title="ShooterGameMode.cpp"
 UnOccupiedStartPoints.RemoveAll([&](const APlayerStart* Start)
 {
 	for (TActorIterator<AShooterCharacter> It(World); It; ++It)
@@ -257,7 +257,7 @@ UnOccupiedStartPoints.RemoveAll([&](const APlayerStart* Start)
 
 Ready is a Server RPC, and once every player is ready a countdown starts. The countdown only replicates once, then each machine counts down on its own. Only the server starts the match, so a client being slightly off doesn't matter:
 
-```cpp
+```cpp title="ShooterGameState.cpp"
 DOREPLIFETIME_CONDITION(AShooterGameState, WaitingToStartTime, COND_InitialOnly);
 
 WaitingToStartTime -= DeltaSeconds;
@@ -277,7 +277,7 @@ If you don't wanna use Discord, this game has game chat...
 
 A message goes to the server with a Server RPC. The server picks who should get it and sends it to each of them with a Client RPC:
 
-```cpp
+```cpp title="ShooterPlayerState.cpp"
 void AShooterPlayerState::SendChatMessage_Implementation(EShooterTeam PlayerTeam,
 	const FString& SenderName, const FString& MessageText)
 {
@@ -306,7 +306,7 @@ Pick a tag with 1–5 and press X to spray it on whatever you're looking at with
 
 The tricky part is laying the decal flat on the surface. I build a quaternion that turns the decal's forward axis (+X) to face into the hit normal:
 
-```cpp
+```cpp title="ShooterPlayerController.cpp"
 float Dot = FVector::DotProduct(FVector::XAxisVector, -HitResult.Normal);
 if (Dot == 1.0f)       Quaternion = FQuat::Identity;                    // already facing it
 else if (Dot == -1.0f) Quaternion = FQuat(FVector::ZAxisVector, UE_PI); // exactly opposite
@@ -333,7 +333,7 @@ I tried out other parts of UE with a small top-down stealth level on UE's Top Do
 
 Health, max health, move speed and damage are GAS attributes. The attribute set turns that into health loss in one place:
 
-```cpp
+```cpp title="TopDownAttributeSet.cpp"
 void UTopDownAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
@@ -351,7 +351,7 @@ Having one place for damage means things like invulnerability are one `if`, and 
 
 States like crouching, immobile, invulnerable and dead are gameplay tags. Other systems just check the tag. For example, the movement component returns a max speed of 0 while you have the Immobile tag:
 
-```cpp
+```cpp title="TopDownCharMovementComponent.cpp"
 float UTopDownCharMovementComponent::GetMaxSpeed() const
 {
 	if (ASC->HasMatchingGameplayTag(ImmobileTag)) return 0.0f;
@@ -368,7 +368,7 @@ I do love GAS, pretty flexible and useful.
 
 I use this making a stealth demo. How far an enemy can see depends on your threat level (Check the vid caption below). Moving raises it, crouching and stealth zones lower it, and the FindPlayer service turns each level into a view cone, from 30° and 1 meter up to 90° and 40 meters. It still needs a clear line trace, so walls block it.
 
-```cpp
+```cpp title="TopDownCharacter.cpp · BTService_FindPlayer.cpp"
 int ThreatOffset = 0;
 if (GetVelocity().SizeSquared() > KINDA_SMALL_NUMBER) ThreatOffset += 1;
 if (bIsCrouched) ThreatOffset -= 1;

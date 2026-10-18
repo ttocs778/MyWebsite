@@ -7,6 +7,8 @@ image: './hero.jpg'
 cardImage: './cover.jpg'
 bannerPosition: '65% center'
 bannerBlur: false
+team: ['Motherduckers']
+teamLabel: 'Fellow'
 links:
   - { label: 'Play on Steam', icon: 'play', url: 'https://store.steampowered.com/app/4506950/Lucky_Duckies/' }
 ---
@@ -14,8 +16,13 @@ import QuestFlow from '../../../components/diagrams/QuestFlow.astro';
 import talk from './talk.mp4';
 import questTalk from './quest-talk.mp4';
 import bubble from './bubble-v2.mp4';
-import questMoveShow from './quest-move-show-v2.mp4';
+import questMoveShow from './quest-move-show-v3.mp4';
 import questMoveAnim from './quest-move-anim.mp4';
+import charSelect from './char-select-v4.mp4';
+import boatProgress from './boat-progress-v2.mp4';
+import dozerHealth from './dozer-health-v2.mp4';
+import tutorialSpray from './tutorial-spray.mp4';
+import playerTracker from './player-tracker.mp4';
 
 Before I start, I just want to say thanks to everyone on our team. This project couldn't have happened without any of you, and it's the best project I've ever been part of. I kind of miss all the late-night debugging, the system design meetings and the UI tweaking chats... I hope everyone reading this gets a chance to play the game. It's pretty fun, not perfect, but we tried our best. Enjoy!
 
@@ -42,7 +49,7 @@ Due to our game features, the dialogue system could stay pretty lightweight. It 
 
 Our first version ran on the Gameplay Ability System (GAS). Each NPC had an ability that played one long animation montage, and every line of dialogue was a section of that montage. The lines themselves were rows in a data table:
 
-```cpp
+```cpp title="DialogTableRow.h"
 USTRUCT(BlueprintType)
 struct FDialogTableRow : public FTableRowBase
 {
@@ -63,7 +70,7 @@ Anim notifies on the montage timeline sent the next line's tag, set the subtitle
 
 Skipping a line just jumped the montage to the next section:
 
-```cpp
+```cpp title="GAP_ProvideDialog.cpp"
 void UGAP_ProvideDialog::HandleDialogSkip(FGameplayEventData Payload)
 {
     // Only the player who started the conversation can skip it
@@ -101,7 +108,7 @@ A conversation starts either from a trigger sphere in the level or from the play
 
 The core is `UDialogGISubsystem`, the state machine that runs the graph. `StartDialog` checks that the session, the controller and the asset are all valid, finds the Start node, and starts processing nodes one by one. The Dialog node is where the real work happens:
 
-```cpp
+```cpp title="DialogGISubsystem.cpp"
 void UDialogGISubsystem::ProcessDialogNode()
 {
     // The NodeInfo is what the designer filled in for this line
@@ -133,7 +140,7 @@ void UDialogGISubsystem::ProcessDialogNode()
 
 After a line starts, the subsystem works out how long it lasts (the duration override, or the voice's length), picks the next node right away, and starts a timer. When the timer is up, it moves on to that node.
 
-```cpp
+```cpp title="DialogGISubsystem.cpp"
 void UDialogGISubsystem::ProcessCurrentNode()
 {
     if (!CurrentDialogNode) { EndDialog(); return; }
@@ -164,7 +171,7 @@ End nodes can also carry **quest data**: who receives the quest, and which quest
   ![Dialogue graph with a Start Quest end node selected; the properties panel shows quest data with receiver tag dialog.speaker.grandma and quest tag npc.tasks.collection](./quest-end-node.png)
 </Wide>
 
-```cpp
+```cpp title="DialogGISubsystem.cpp"
 void UDialogGISubsystem::ProcessEndNode()
 {
     if (UDialogEndNodeInfo* NodeInfo = CurrentDialogNode->GetNodeInfo<UDialogEndNodeInfo>())
@@ -189,7 +196,7 @@ Online sync comes down to three steps: the server decides who can start, the pla
 
 **1. The server decides who starts.** The dialogue system is basically one big state machine, so only one conversation can run at a time, or they'd step on each other's nodes and subtitles. So a client can't just start one. It asks the server to lock the subsystem first, kind of like a mutex, and the server says no if something's already playing:
 
-```cpp
+```cpp title="LDPlayerController.cpp"
 void ALDPlayerController::StartDialog(UDialogAsset* DialogAsset)
 {
     if (HasAuthority())
@@ -214,7 +221,7 @@ void ALDPlayerController::Server_LockDialogSubsystem_Implementation()
 
 **2. Sync the node, not the performance.** We don't send the subtitle, the audio time or the montage progress. Every time the subsystem processes a node, only *which node* goes over the network, through a replicated property on the `PlayerState`:
 
-```cpp
+```cpp title="LDPlayerState.cpp"
 void ALDPlayerState::RequestDialogSync(UDialogGraphNodeRuntime* Node)
 {
     if (HasAuthority())
@@ -246,7 +253,7 @@ void ALDPlayerState::OnRep_CurrentDialogNode()
 
 When you walk up to an NPC, a “...” bubble shows up over their head, so you know you can talk to them. In split-screen each player should only see their own bubble, so every NPC has **two bubble widgets**, one for each player:
 
-```cpp
+```cpp title="NPCSpeechBubbleComp.cpp"
 void UNPCSpeechBubbleComp::SetupSpeechBubbles()
 {
     // One widget component per player, set up in the NPC Blueprint
@@ -292,7 +299,7 @@ After dialogue built, our designer wanted the game to be more “suggestive” a
 
 A quick aside: the quest line moves out of the way. When a collection task starts, the HUD pushes the quest down under the collection panel. When the task is done, the panel hides itself after 5 seconds and the quest slides back up:
 
-```cpp
+```cpp title="LDUIComponent.cpp"
 void ULDUIComponent::HandleStartCollection(int32 RequiredCount)
 {
     CollectionWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -317,7 +324,7 @@ void ULDUIComponent::HandleAutoHideCollection()   // 5 s after the task is compl
 
 A quest is just a line of text waiting to be popped off in order, so I simply made them a **stack** on the `GameState`. The newest quest goes on top, and it gets popped once it's done. So a side task can interrupt the main goal, and once you finish it, the main goal shows up again on its own.
 
-```cpp
+```cpp title="LDGameState.cpp"
 void ALDGameState::PushQuest(FLDQuestData NewQuest)
 {
     QuestsStack.Push(NewQuest);
@@ -345,7 +352,7 @@ Quests come from a few places. The dialogue End node can carry quest data, so a 
 
 The stack is replicated on the `GameState`. The server pushes and pops, and clients rebuild the HUD in `OnRep`. The HUD widget doesn't know where quests come from. It just listens to `OnQuestChanged` and shows the top of the stack, or hides when it's empty:
 
-```cpp
+```cpp title="LDGameState.cpp · Widget_Quest.cpp"
 void ALDGameState::OnRep_QuestStack()
 {
     // Clients: the stack just changed, show whatever is on top now
@@ -366,11 +373,184 @@ void UWidget_Quest::OnQuestChanged(const FLDQuestData& QuestData)
 
 <QuestFlow />
 
-## UI for split-screen and controllers
+## UI
 
-<Placeholder>Section to write: HUD, menus and controller navigation in split-screen</Placeholder>
+UI is a big part of our game, since it has to work with a lot of gameplay features.
 
-## Other highlights
+Jiawei and I built our UI framework on CommonUI. Every screen sits on a stack picked by a gameplay tag (frontend, game menu, modal…), and opening a menu just means pushing a widget onto the right stack, loaded async so the game doesn't hitch:
 
-<Placeholder>To write: Dozer health bar, duckling collection UI, save / continue</Placeholder>
+```cpp title="FrontendUISubsystem.cpp"
+// Load the widget class in the background, then push it onto the stack with this tag
+UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(InSoftWidgetClass.ToSoftObjectPath(),
+    FStreamableDelegate::CreateLambda([=]()
+    {
+        UCommonActivatableWidgetContainerBase* Stack = CreatedPrimaryLayout->FindWidgetStackByTag(InWidgetStackTag);
+        Stack->AddWidget<UWidget_ActivatableBase>(InSoftWidgetClass.Get());
+    }));
+```
 
+So a confirm popup always goes on the modal stack and stays on top, even over the blurred pause menu.
+
+On top of that framework, I built the screens players actually see and interact with, mostly in UMG.
+
+### Character select
+
+Character select works like picking teams in *NBA 2K*: Dustin on the left, Darlene on the right, and you push your box over with the stick. Two boxes in the same column stack, and when one leaves, the other slides up.
+
+My first version used fixed UMG animations, one per move (middle to left, middle to right). Those broke as soon as two boxes shared a column and had to stack or slide up, so I switched to tweening in code. Each column is an array of boxes, so every box sits in a grid cell, and a move just eases both boxes to their new cells in `NativeTick`:
+
+```cpp title="Widget_CharacterSelection.cpp"
+void UWidget_CharacterSelection::StartAnimation(ESelectionBox SelectionBox, FIntVector2 CellCoord)
+{
+    // Grid cell -> pixels: 420 px per column, 130 px per row
+    Entry.Start = Slot->GetPosition();
+    Entry.End = OriginPos + FVector2D(CellCoord.X * HorizontalOffset, CellCoord.Y * VerticalOffset);
+    Entry.ElapsedTime = 0;
+    Entry.IsActive = true;
+}
+
+// NativeTick: 0.3 s ease-out toward the target cell
+float t = FMath::Clamp(Entry.ElapsedTime / AnimDuration, 0.f, 1.f);
+Slot->SetPosition(FMath::Lerp(Entry.Start, Entry.End, FMath::InterpEaseOut(0.f, 1.f, t, 2.f)));
+```
+
+The box also swaps its arrow and confirm icons between keyboard and controller, depending on what each player is holding.
+
+<Wide xl caption="Character select at 1.5x: the boxes move between Dustin and Darlene, and stack when they end up in the same column">
+  <Video src={charSelect} wide />
+</Wide>
+
+### Tutorial prompts
+
+Here's how a prompt gets on screen. A designer drops a tutorial trigger (a sphere or capsule component) in the level and types a name on it, like "Spray". When a player walks in, the trigger tells that player's UI component to show "Spray", and when they walk out, to hide it. The UI component hands the name to the tutorial widget, which looks it up in its tutorial map.
+
+Each entry in that map is everything one prompt needs: the action's icon (or a set of animation frames), a line of text, and separate keyboard and controller button icons. So a new tutorial is just a new trigger and a new map entry, no code.
+
+Triggers can overlap, so the UI component counts them per name and only hides a prompt when its last trigger is gone. If another prompt is still active, that one shows up instead:
+
+```cpp title="LDUIComponent.cpp"
+void ULDUIComponent::AddToTutorialMap(const FString& UIName)
+{
+    if (UIName != CurrentUIName)
+    {
+        CurrentUIName = UIName;
+        UpdateTutorialWidget(UIName);           // the widget looks the name up in its map
+    }
+    TutorialUIRegistration.FindOrAdd(UIName)++; // one more trigger for this prompt
+}
+
+void ULDUIComponent::RemoveFromTutorialMap(const FString& UIName)
+{
+    if (!TutorialUIRegistration.Contains(UIName)) return;
+    if (--TutorialUIRegistration[UIName] > 0) return;   // still inside another trigger
+    TutorialUIRegistration.Remove(UIName);
+    if (UIName == CurrentUIName)
+    {
+        // Fall back to any prompt that's still active, or hide
+        TArray<FString> Active;
+        TutorialUIRegistration.GetKeys(Active);
+        CurrentUIName = Active.IsEmpty() ? FString() : Active[0];
+        UpdateTutorialWidget(CurrentUIName);
+    }
+}
+```
+
+The widget also listens for input changes, so the button icons swap the moment you pick up a controller, like the left mouse button turning into RT for Spray. 
+
+One problem worth bringing up: the prompt has a fixed slot for each key, so WASD had to be a single wide image, and that width doesn't fit the controller's one stick icon. It's a typical case of a structure that stops matching what the game needs as development goes on. Next time I'd give each input type its own size and re-apply it on every input change.
+
+<Figure tall caption="The Spray entry in the tutorial map: five animation frames at 12 FPS, “Hold”, and the mouse and RT icons">
+  ![Details panel for the Spray entry: Bound Tutorial Icon Frames with five duck_spray_animation images, FPS 12, Bound Text 0 "Hold", the LD_UI_MouseLeft keyboard icon and the RT controller icon](./tutorial-map-spray-hud.png)
+</Figure>
+
+For prompts that need to show an action, like spraying water, I didn't want a video or a material. The prompt just takes a list of images and flips through them on a timer:
+
+```cpp title="Widget_Tutorial.cpp"
+void UWidget_Tutorial::AdvanceTutorialIconFrame()
+{
+    // A tiny flipbook: next image every 1/FPS seconds, looping
+    TutorialIconFrameIndex = (TutorialIconFrameIndex + 1) % TutorialIconFramesLoaded.Num();
+    LazyImage_Tutorial->SetBrushFromTexture(TutorialIconFramesLoaded[TutorialIconFrameIndex]);
+}
+```
+
+<Figure caption="Walking into the Spray trigger: the animated prompt pops up, and the button icon switches from RT to the left mouse button">
+  <Video src={tutorialSpray} tall />
+</Figure>
+
+### Dozer's health bar
+
+Dozer is the boss dog, and you fight him three times. His health bar just listens to his `OnBossHealthChanged` event, so it works the same in all three fights:
+
+```cpp title="Widget_DozerHealthBar.cpp"
+void UWidget_DozerHealthBar::OnHealthUpdated(float CurrentHealth, float MaxHealth)
+{
+    if (PB_Health && MaxHealth > 0.f)
+    {
+        PB_Health->SetPercent(CurrentHealth / MaxHealth);
+    }
+}
+```
+
+<Wide xl caption="A Dozer fight in split-screen, with his health bar and name across the top">
+  <Video src={dozerHealth} wide />
+</Wide>
+
+### The boat bar that got cut
+
+I also made a progress bar for the boat level. The boat follows a spline, so its progress is just how far along the spline it is, divided by the spline's length. A little knob rides along the end of the fill, and it only travels the bar's width minus its own, so it never sticks out past either end:
+
+```cpp title="Widget_BoatProgress.cpp"
+void UWidget_BoatProgress::UpdateKnobByFill(float P)
+{
+    const float BarWidth = BoatProgressBar->GetCachedGeometry().GetLocalSize().X;
+    const float KnobWidth = image_Knob->GetCachedGeometry().GetLocalSize().X;
+    // Slide the knob across the bar, keeping it inside both ends
+    const float KnobX = P * (BarWidth - KnobWidth) + 4.0f;
+    image_Knob->SetRenderTranslation(FVector2D(KnobX, 0.f));
+}
+```
+
+It got cut right at the end, which happens. RIP boat bar.
+
+<Wide xl caption="The boat level in the editor, before the bar was cut. The progress bar is at the top of each half">
+  <Video src={boatProgress} wide />
+</Wide>
+
+## Other contributions
+
+### Splash screen
+
+Swapped the Unreal Editor splash screen for one with Dozer on it, so every time the team opened the project, the dog was there to greet them.
+
+<Figure caption="The Unreal Editor splash screen for Lucky Duckies">
+  ![Unreal Editor loading screen showing Dozer the dog biting a rubber duck, with "Unreal Editor - LuckyDuckies" and shader compile progress](./editor-splash.png)
+</Figure>
+
+### Player tracker
+
+In split-screen it's easy to lose your partner, so each player gets a marker at the edge of the screen that points toward the other duck when they're off screen.
+
+<Figure caption="The marker at the edge of the screen points toward the other duck, and hides once they’re on screen">
+  <Video src={playerTracker} tall />
+</Figure>
+
+### Debugs
+
+Of course, as an engineer you're always debugging, and I dealt with bugs in pretty much every corner of this game, so I won't show them all off haha.
+
+### The night before the final build
+
+If I had to pick the most memorable part of this project, it's the night before the final build, when our director Chris found that if you clicked out of the game and back in, your next jump on the controller made the duck start spraying and it just wouldn't stop. 
+
+We were racing the clock, so pretty much the whole engineering team stayed up chasing it. I found in the logs that the jump was getting eaten by the spray ability, and after 5–6 hours of digging together (with some help from Mr. Claude) we traced it back to CommonUI, which turns the A button into a fake left mouse click so a controller can press menu buttons, and of course our spray was on the left mouse button lol.
+
+It only showed up in that one rare case, which is why it hid so well, but once we knew, the fix was simple: ignore those fake clicks whenever you're playing on a controller. It was like tearing the whole house apart looking for your glasses and then finding them on your head, and honestly I kind of loved it.
+
+<Figure caption="The next afternoon... letsgoooooooooooo">
+  ![Discord messages: George Zou says "New build is uploaded!" and Chris replies with a long WOOOO and LETS GO](./final-build-chat.png)
+</Figure>
+
+---
+
+That's a whole year of work wrapped up, and it still feels short. Thanks again, Motherduckers, it was a blast building this with the team, and thank you for reading this far too!

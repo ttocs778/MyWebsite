@@ -39,7 +39,7 @@ We started the backend with Java servlets on Tomcat, I know it's like last centu
 
 The one thing I made sure of was using a `PreparedStatement` instead of gluing the input into the SQL string. One of our tests was trying a SQL injection on the login, and with a prepared statement the input only ever gets treated as a value, never as SQL.
 
-```java
+```java title="LoginServlet.java"
 String query = "SELECT * FROM User WHERE username = ? AND userPassword = ?";
 PreparedStatement stmt = conn.prepareStatement(query);
 stmt.setString(1, username);
@@ -61,7 +61,7 @@ Then I moved the whole backend to Spring Boot. The servlet returned HTML, but th
 
 With Spring Data JPA you don't write that boilerplate. You name a method on a repository interface and Spring generates the query from the name. The new login handled username or email with this one line.
 
-```java
+```java title="UserRepository.java"
 // Spring writes: WHERE username = ? OR user_email = ?
 Optional<User> findByUsernameOrUserEmail(String userInput, String userInputDuplicate);
 ```

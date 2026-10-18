@@ -23,7 +23,7 @@ const { title, description, image, bannerPosition, bannerBlur = true, links, tea
 const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : undefined;
 ---
 
-<Layout title={`Scott Tang – ${title}`} textWidth="40rem">
+<Layout title={`Scott Tang – ${title}`} textWidth="42rem" pixelTop={false}>
 	<article class="project-page">
 		<header class="project-header">
 			{image ? (
@@ -80,9 +80,9 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 			display: flex;
 			flex-direction: column;
 			gap: 3rem;
-			/* ~70 characters per line at the body font size — comfortable reading measure */
-			width: min(40rem, var(--fluid-width));
-			max-width: 40rem;
+			/* ~75 characters per line at the body font size — comfortable reading measure */
+			width: min(42rem, var(--fluid-width));
+			max-width: 42rem;
 		}
 
 		/* Steam-style banner: the cover image spanning the full window width and
@@ -175,7 +175,7 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 			display: flex;
 			flex-direction: column;
 			gap: 0.5rem;
-			max-width: 34rem;
+			max-width: 36rem;
 			text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
 		}
 
@@ -294,6 +294,29 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 			font-size: 0.85rem;
 			line-height: 1.6;
 			overflow-x: auto;
+		}
+
+		/* ```lang title="File.cpp": the file name as a header row inside the block's card */
+		.project-content :global(.code-block) {
+			margin: 0 0 1.25rem;
+			border: 1px solid rgba(148, 163, 184, 0.12);
+			border-radius: 10px;
+			overflow: hidden;
+			background: #24292e;
+		}
+
+		.project-content :global(.code-title) {
+			padding: 0.45rem 1.15rem;
+			border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+			color: var(--muted);
+			font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+			font-size: 0.78rem;
+		}
+
+		.project-content :global(.code-block pre) {
+			margin: 0;
+			border: none;
+			border-radius: 0;
 		}
 
 		/* Markdown tables: a bordered card like the code blocks, accent-tinted header */

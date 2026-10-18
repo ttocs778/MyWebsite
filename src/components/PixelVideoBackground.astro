@@ -1,0 +1,537 @@
+---
+// Home page background: a project montage drawn as a grid of palette-quantised pixels (WebGL2).
+// Noise drives three things: the order cells flip in when the clip changes, the path they slide
+// along mid-flip, and the dither threshold. The pointer leaves a fading trail of brighter cells.
+// The video itself is never shown; it is sampled as a texture. Without WebGL2, or with reduced
+// motion, only the static gradient fallback is visible and the video is never downloaded.
+interface Props {
+	src: string;
+	cuts: number[];      // start time (s) of every shot in the montage; each one triggers a transition
+	calm?: string;       // selector of the element whose area is dimmed so its text stays readable
+}
+const { src, cuts, calm = '.hero' } = Astro.props;
+---
+
+<div class="pixel-video-bg" aria-hidden="true">
+	<div class="pixel-video-fallback"></div>
+	<canvas class="pixel-video-canvas" data-src={src} data-cuts={JSON.stringify(cuts)} data-calm={calm}></canvas>
+	<div class="pixel-video-vignette"></div>
+</div>
+
+<!-- Tuning panel for visitors: hidden until the background is running, collapsed by default -->
+<div class="pixel-tune">
+	<div class="pixel-tune-bar">
+	<button type="button" class="pixel-tune-pause" aria-pressed="false" aria-label="Pause background" title="Pause background">
+		<svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+		<svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>
+	</button>
+	<button type="button" class="pixel-tune-toggle" aria-expanded="false" aria-controls="pixel-tune-panel" title="Tune the background">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>
+		<span>Tune background</span>
+	</button>
+	</div>
+	<div class="pixel-tune-panel" id="pixel-tune-panel" hidden>
+		<label>Pixel size <input data-key="cell" type="range" min="6" max="40" step="1" /><output></output></label>
+		<label>Flow <input data-key="flow" type="range" min="0" max="1.5" step="0.05" /><output></output></label>
+		<label>Breath <input data-key="breath" type="range" min="0" max="0.3" step="0.01" /><output></output></label>
+		<label>Trail <input data-key="trail" type="range" min="0" max="2" step="0.05" /><output></output></label>
+		<label>Title dim <input data-key="calmDim" type="range" min="0" max="1" step="0.05" /><output></output></label>
+		<label>Exposure <input data-key="expo" type="range" min="0" max="0.7" step="0.01" /><output></output></label>
+		<label>Contrast <input data-key="contrast" type="range" min="0.5" max="3" step="0.05" /><output></output></label>
+		<label>Vignette <input data-key="vignette" type="range" min="0" max="1" step="0.05" /><output></output></label>
+		<label>Shape <select data-key="shape"><option value="0">Squares</option><option value="1">Dots</option></select><output></output></label>
+		<label>Dither <select data-key="dither"><option value="1">Noise</option><option value="0">Bayer</option><option value="2">None</option></select><output></output></label>
+		<div class="pixel-tune-buttons">
+			<button type="button" data-action="cut">Next clip</button>
+			<button type="button" data-action="reset">Reset</button>
+		</div>
+	</div>
+</div>
+
+<script is:inline>
+(() => {
+	const canvas = document.querySelector('.pixel-video-canvas');
+	if (!canvas || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+	const gl = canvas.getContext('webgl2', { premultipliedAlpha: true, antialias: false });
+	if (!gl) return;
+
+	const CUTS = JSON.parse(canvas.dataset.cuts);   // shot start times, ascending
+	const shotAt = t => { let s = 0; while (s + 1 < CUTS.length && t >= CUTS[s + 1]) s++; return s; };
+	const TDUR = 1.8;                       // seconds a transition wave takes to cross the screen
+	const TRAIL = 16, TRAIL_LIFE = 0.9;     // pointer samples kept / seconds each one glows
+
+	// look settings (the dev-only panel edits these live)
+	const cfg = {
+		cell: 10,        // target cell size in CSS px
+		flow: 0.6,       // how far mid-flip cells slide along the noise field
+		breath: 0.048,   // slow fbm brightness wave
+		trail: 0.9,      // pointer trail brightness
+		calmDim: 0.2,    // brightness kept behind the hero text (0 = black, 1 = untouched)
+		expo: 0.15,      // brightness the clip average maps to
+		contrast: 1.6,   // spread around that average
+		vignette: 0.75,  // edge darkening
+		shape: 0,        // 0 square pixels, 1 dots
+		dither: 1,       // 0 Bayer, 1 noise, 2 none
+	};
+
+	const vs = `#version 300 es
+precision highp float;
+layout(location = 0) in vec2 aCell;
+uniform sampler2D uLive, uHeld;            // current clip / frozen last frame of the previous clip
+uniform vec2 uGrid, uRes, uCrop;
+uniform float uCell, uLod, uTime, uTrans, uSeed;
+uniform float uFlow, uBreath, uTrailAmt, uCalmDim, uExpo, uContrast, uDither, uShape;
+uniform vec4 uCalm;                        // centre xy + radius xy (px) of the dimmed text area
+uniform vec3 uTrail[16];                   // xy px, z age 0 (fresh) .. 1 (gone)
+out float vLevel; out float vSize;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+vec2 hash2(vec2 p) { p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return fract(sin(p) * 43758.5453); }
+float noise(vec2 p) {
+	vec2 i = floor(p), f = fract(p);
+	vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+	return mix(mix(dot(hash2(i) * 2.0 - 1.0, f), dot(hash2(i + vec2(1, 0)) * 2.0 - 1.0, f - vec2(1, 0)), u.x),
+	           mix(dot(hash2(i + vec2(0, 1)) * 2.0 - 1.0, f - vec2(0, 1)), dot(hash2(i + 1.0) * 2.0 - 1.0, f - 1.0), u.x), u.y);
+}
+float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += a * noise(p); p = p * 2.03 + 17.0; a *= 0.5; } return s; }
+float easeOutBack(float x) { float c1 = 1.4, c3 = c1 + 1.0; return 1.0 + c3 * pow(x - 1.0, 3.0) + c1 * pow(x - 1.0, 2.0); }
+float bayer4(vec2 p) {
+	ivec2 i = ivec2(mod(p, 4.0));
+	int m[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+	return (float(m[i.y * 4 + i.x]) + 0.5) / 16.0;
+}
+
+const float LEVELS = 7.0;
+const vec3 LUMA = vec3(0.299, 0.587, 0.114);
+
+void main() {
+	vec2 cuv = (aCell + 0.5) / uGrid;
+	vec2 vuv = (cuv - 0.5) * uCrop + 0.5;
+	vec2 home = (aCell + 0.5) * uCell;
+
+	// noise-ordered transition: each cell flips when the wave reaches its fbm value
+	float order = fbm(cuv * vec2(uGrid.x / uGrid.y, 1.0) * 2.2 + uSeed) * 0.9 + 0.5;
+	float local = clamp((uTrans - order * 0.65) / 0.35, 0.0, 1.0);
+	float flipped = step(0.5, local);
+	float flight = sin(3.14159 * local);
+
+	// luminance, auto-exposed against each clip's average (the smallest mip)
+	float lA = dot(textureLod(uHeld, vuv, uLod).rgb, LUMA), aA = dot(textureLod(uHeld, vec2(0.5), 12.0).rgb, LUMA);
+	float lB = dot(textureLod(uLive, vuv, uLod).rgb, LUMA), aB = dot(textureLod(uLive, vec2(0.5), 12.0).rgb, LUMA);
+	float l = mix(clamp(uExpo + (lA - aA) * uContrast, 0.0, 1.0), clamp(uExpo + (lB - aB) * uContrast, 0.0, 1.0), flipped);
+
+	// breathing: a slow fbm wave so still shots never freeze
+	l += uBreath * fbm(cuv * 3.0 + vec2(uTime * 0.07, -uTime * 0.05));
+
+	// pointer trail: brightest recent sample, each fading with age
+	float tr = 0.0;
+	for (int i = 0; i < 16; i++) {
+		float dd = length(home - uTrail[i].xy) / uCell;
+		float life = 1.0 - uTrail[i].z;
+		tr = max(tr, exp(-dd * dd / 5.0) * life * life);
+	}
+	l += tr * uTrailAmt;
+
+	// keep the hero text readable
+	vec2 cd = (home - uCalm.xy) / uCalm.zw;
+	l *= mix(uCalmDim, 1.0, smoothstep(0.6, 1.25, length(cd)));
+
+	// quantise; the threshold is per-cell noise (default), a Bayer matrix, or plain rounding
+	float thr = uDither < 0.5 ? bayer4(aCell) : (uDither < 1.5 ? hash(aCell) : 0.5);
+	float level = clamp(floor(l * LEVELS + thr), 0.0, LEVELS) / LEVELS;
+
+	// mid-flip cells slide along the noise field, then settle with a little overshoot
+	float ang = fbm(cuv * 3.0 + uSeed * 0.3) * 6.2831 * 1.5;
+	vec2 pos = home + vec2(cos(ang), sin(ang)) * flight * uFlow * uCell * 6.0;
+	float settle = local > 0.0 && local < 1.0 ? easeOutBack(local) : 1.0;
+
+	vLevel = level;
+	vSize = mix(1.0, 0.55, flight) * mix(0.85, 1.0, settle);
+	gl_Position = vec4(pos / uRes * 2.0 - 1.0, 0.0, 1.0);
+	// squares fill the cell; dots grow with brightness
+	float px = uShape < 0.5 ? uCell * 0.92 : uCell * (0.25 + 0.95 * sqrt(level)) * 1.1;
+	gl_PointSize = max(px * vSize, 1.0);
+}`;
+
+	const fs = `#version 300 es
+precision highp float;
+in float vLevel; in float vSize; out vec4 o;
+uniform vec3 uRamp[8];
+uniform float uShape;
+void main() {
+	if (vLevel < 0.01) discard;
+	vec2 d = gl_PointCoord * 2.0 - 1.0;
+	vec2 q = abs(d) - 0.72;
+	float a = uShape < 0.5
+		? 1.0 - smoothstep(0.0, 0.08, length(max(q, 0.0)) - 0.2)   // soft-cornered square
+		: 1.0 - smoothstep(0.75, 1.0, length(d));                  // dot
+	float idx = vLevel * 7.0;
+	vec3 c = mix(uRamp[int(floor(idx))], uRamp[min(int(floor(idx)) + 1, 7)], fract(idx));
+	o = vec4(c * a, a);
+}`;
+
+	const compile = (type, src) => {
+		const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+		if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+		return s;
+	};
+	const prog = gl.createProgram();
+	try {
+		gl.attachShader(prog, compile(gl.VERTEX_SHADER, vs));
+		gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fs));
+		gl.linkProgram(prog);
+		if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+	} catch (err) { console.warn('pixel background disabled:', err); return; }
+	gl.useProgram(prog);
+	const U = n => gl.getUniformLocation(prog, n);
+
+	// palette: page background -> --accent -> near white, read from the CSS tokens
+	const hex = v => { v = v.trim().replace('#', ''); return [0, 2, 4].map(i => parseInt(v.slice(i, i + 2), 16) / 255); };
+	const accent = hex(getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#8b9cff');
+	const base = [0.047, 0.059, 0.102];   // #0c0f1a, body background on the home page
+	const mix3 = (a, b, t) => a.map((x, i) => x + (b[i] - x) * t);
+	const ramp = [];
+	for (let i = 0; i < 7; i++) ramp.push(...mix3(base, accent, Math.pow(i / 6, 1.35)));
+	ramp.push(...mix3(accent, [1, 1, 1], 0.65));
+	gl.uniform3fv(U('uRamp[0]'), new Float32Array(ramp));
+
+	// two textures: live clip + frozen last frame of the previous clip
+	const tex = () => {
+		const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.generateMipmap(gl.TEXTURE_2D);
+		return t;
+	};
+	const texs = [tex(), tex()];
+	gl.uniform1i(U('uLive'), 0);
+	gl.uniform1i(U('uHeld'), 1);
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
+	const video = document.createElement('video');
+	Object.assign(video, { src: canvas.dataset.src, muted: true, loop: true, playsInline: true, preload: 'auto' });
+	video.setAttribute('aria-hidden', 'true');
+
+	const vao = gl.createVertexArray(), vbo = gl.createBuffer();
+	let cols = 0, rows = 0, cell = 1, count = 0;
+	const calmEl = document.querySelector(canvas.dataset.calm);
+	let calm = [0, 0, 1, 1];
+	const build = () => {
+		const dpr = Math.min(devicePixelRatio || 1, 2);
+		canvas.width = Math.round(innerWidth * dpr); canvas.height = Math.round(innerHeight * dpr);
+		cols = Math.max(12, Math.min(320, Math.round(innerWidth / cfg.cell)));
+		cell = canvas.width / cols; rows = Math.ceil(canvas.height / cell);
+		count = cols * rows;
+		const d = new Float32Array(count * 2);
+		for (let y = 0, i = 0; y < rows; y++) for (let x = 0; x < cols; x++, i++) { d[i * 2] = x; d[i * 2 + 1] = y; }
+		gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+		gl.bufferData(gl.ARRAY_BUFFER, d, gl.STATIC_DRAW);
+		gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+		if (calmEl) {
+			const r = calmEl.getBoundingClientRect();
+			calm = [(r.left + r.width / 2) * dpr, (innerHeight - r.top - r.height / 2) * dpr, Math.max(r.width * 0.62, 120) * dpr, Math.max(r.height * 0.9, 80) * dpr];
+		}
+	};
+	addEventListener('resize', build);
+	build();
+
+	// pointer trail ring buffer
+	let mouse = [-1e5, -1e5], lastMove = -1e9, head = 0, lastSample = 0;
+	const trail = new Float32Array(TRAIL * 3), trailU = new Float32Array(TRAIL * 3);
+	for (let i = 0; i < TRAIL; i++) { trail[i * 3] = trail[i * 3 + 1] = -1e5; trail[i * 3 + 2] = -1e9; }
+	addEventListener('pointermove', e => {
+		const s = canvas.width / innerWidth;
+		mouse = [e.clientX * s, (innerHeight - e.clientY) * s];
+		lastMove = performance.now();
+	}, { passive: true });
+
+	let live = 0, seg = -1, transStart = -1e9, seed = 0, shown = false, raf = 0;
+	const frame = now => {
+		raf = requestAnimationFrame(frame);
+		const t = now / 1000;
+		if (video.readyState >= 2) {
+			const s = shotAt(video.currentTime);
+			if (s !== seg) {
+				// new clip: what we had becomes "held", and the wave starts
+				if (seg !== -1) { live = 1 - live; transStart = t; seed = Math.random() * 50; }
+				seg = s;
+			}
+			gl.activeTexture(gl.TEXTURE0);
+			gl.bindTexture(gl.TEXTURE_2D, texs[live]);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+			gl.generateMipmap(gl.TEXTURE_2D);
+			if (!shown) { shown = true; canvas.classList.add('is-ready'); }
+		}
+		if (now - lastSample > 25 && now - lastMove < 100) {
+			trail[head * 3] = mouse[0]; trail[head * 3 + 1] = mouse[1]; trail[head * 3 + 2] = now;
+			head = (head + 1) % TRAIL; lastSample = now;
+		}
+		for (let i = 0; i < TRAIL; i++) {
+			trailU[i * 3] = trail[i * 3]; trailU[i * 3 + 1] = trail[i * 3 + 1];
+			trailU[i * 3 + 2] = Math.min((now - trail[i * 3 + 2]) / 1000 / TRAIL_LIFE, 1);
+		}
+
+		gl.viewport(0, 0, canvas.width, canvas.height);
+		gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+		gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texs[live]);
+		gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texs[1 - live]);
+
+		const va = (video.videoWidth / video.videoHeight) || 16 / 9, sa = canvas.width / canvas.height;
+		gl.uniform2f(U('uCrop'), sa > va ? 1 : sa / va, sa > va ? va / sa : 1);
+		gl.uniform2f(U('uGrid'), cols, rows);
+		gl.uniform2f(U('uRes'), canvas.width, canvas.height);
+		gl.uniform1f(U('uCell'), cell);
+		gl.uniform1f(U('uLod'), Math.log2(Math.max((video.videoWidth || 480) / cols, 1)) + 0.5);
+		gl.uniform1f(U('uTime'), t);
+		gl.uniform1f(U('uTrans'), Math.min((t - transStart) / TDUR, 1));
+		gl.uniform1f(U('uSeed'), seed);
+		gl.uniform4fv(U('uCalm'), calm);
+		gl.uniform1f(U('uFlow'), cfg.flow);
+		gl.uniform1f(U('uBreath'), cfg.breath);
+		gl.uniform1f(U('uTrailAmt'), cfg.trail);
+		gl.uniform1f(U('uCalmDim'), cfg.calmDim);
+		gl.uniform1f(U('uExpo'), cfg.expo);
+		gl.uniform1f(U('uContrast'), cfg.contrast);
+		gl.uniform1f(U('uDither'), cfg.dither);
+		gl.uniform1f(U('uShape'), cfg.shape);
+		gl.uniform3fv(U('uTrail[0]'), trailU);
+		gl.bindVertexArray(vao);
+		gl.drawArrays(gl.POINTS, 0, count);
+	};
+
+	// only run (and only play the video) while the tab is visible
+	// the pause button keeps it stopped (on the last drawn frame) even when the tab comes back
+	let paused = false;
+	const start = () => { if (!raf && !paused) { video.play().catch(() => {}); raf = requestAnimationFrame(frame); } };
+	const stop = () => { cancelAnimationFrame(raf); raf = 0; video.pause(); };
+	document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+	if (!document.hidden) start();
+
+	// --- tuning panel ---
+	const defaults = { ...cfg };
+	const tune = document.querySelector('.pixel-tune');
+	const vignette = document.querySelector('.pixel-video-vignette');
+	const applyVignette = () => vignette && vignette.style.setProperty('--pv-vignette', cfg.vignette);
+	applyVignette();
+	if (tune) {
+		document.body.append(tune);   // out of the background layer's stacking context, so it sits above the page
+		const panel = tune.querySelector('.pixel-tune-panel');
+		const toggle = tune.querySelector('.pixel-tune-toggle');
+		const pauseBtn = tune.querySelector('.pixel-tune-pause');
+		pauseBtn.addEventListener('click', () => {
+			paused = !paused;
+			paused ? stop() : start();
+			pauseBtn.setAttribute('aria-pressed', String(paused));
+			const label = paused ? 'Play background' : 'Pause background';
+			pauseBtn.setAttribute('aria-label', label);
+			pauseBtn.title = label;
+		});
+		const controls = [...panel.querySelectorAll('[data-key]')];
+		const show = el => { const out = el.nextElementSibling; if (out && el.tagName === 'INPUT') out.textContent = (+el.value).toFixed(el.step >= 1 ? 0 : 2); };
+		const sync = () => controls.forEach(el => { el.value = cfg[el.dataset.key]; show(el); });
+		controls.forEach(el => el.addEventListener('input', () => {
+			cfg[el.dataset.key] = +el.value; show(el);
+			if (el.dataset.key === 'cell') build();
+			if (el.dataset.key === 'vignette') applyVignette();
+		}));
+		toggle.addEventListener('click', () => {
+			const open = panel.hidden;
+			panel.hidden = !open;
+			toggle.setAttribute('aria-expanded', String(open));
+		});
+		panel.addEventListener('click', e => {
+			const action = e.target.closest('[data-action]')?.dataset.action;
+			if (action === 'cut') video.currentTime = CUTS[(shotAt(video.currentTime) + 1) % CUTS.length];
+			if (action === 'reset') { Object.assign(cfg, defaults); sync(); build(); applyVignette(); }
+		});
+		sync();
+		tune.classList.add('is-active');   // only shown once the background is actually running
+		if (location.hash === '#tune') toggle.click();   // shareable link that opens the panel
+	}
+})();
+</script>
+
+<style>
+	.pixel-video-bg {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+	}
+
+	.pixel-video-fallback {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, #0c0f1a 0%, #111827 50%, #0c0f1a 100%);
+	}
+
+	.pixel-video-canvas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		display: block;
+		opacity: 0;
+		transition: opacity 1.2s ease;
+	}
+
+	.pixel-video-canvas.is-ready {
+		opacity: 1;
+	}
+
+	/* darken the screen edges so the grid fades out instead of ending at the viewport */
+	.pixel-video-vignette {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: radial-gradient(ellipse 85% 85% at 50% 50%, rgba(12, 15, 26, 0) 55%, rgb(12 15 26 / var(--pv-vignette, 0.75)));
+	}
+
+	.pixel-tune {
+		display: none;
+		position: fixed;
+		right: 1rem;
+		bottom: 1rem;
+		z-index: 60;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.5rem;
+		font-size: 0.9rem;
+		color: #cbd5e1;
+	}
+
+	.pixel-tune.is-active {
+		display: flex;
+	}
+
+	.pixel-tune-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.pixel-tune-pause,
+	.pixel-tune-toggle {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.5rem 0.85rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+		background: rgba(12, 15, 26, 0.75);
+		color: #94a3b8;
+		font: inherit;
+		cursor: pointer;
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		transition: color 0.2s ease, border-color 0.2s ease;
+	}
+
+	.pixel-tune-pause:hover,
+	.pixel-tune-pause[aria-pressed='true'],
+	.pixel-tune-toggle:hover,
+	.pixel-tune-toggle[aria-expanded='true'] {
+		color: var(--accent);
+		border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+	}
+
+	.pixel-tune-pause svg,
+	.pixel-tune-toggle svg {
+		width: 18px;
+		height: 18px;
+	}
+
+	.pixel-tune-pause .icon-play,
+	.pixel-tune-pause[aria-pressed='true'] .icon-pause {
+		display: none;
+	}
+
+	.pixel-tune-pause[aria-pressed='true'] .icon-play {
+		display: block;
+	}
+
+	.pixel-tune-panel {
+		display: grid;
+		gap: 0.45rem;
+		width: 17rem;
+		padding: 0.8rem 0.9rem;
+		border-radius: 12px;
+		border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+		background: rgba(12, 15, 26, 0.85);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+	}
+
+	.pixel-tune-panel[hidden] {
+		display: none;
+	}
+
+	.pixel-tune-panel label {
+		display: grid;
+		grid-template-columns: 5rem 1fr 2.6rem;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.pixel-tune-panel input[type='range'] {
+		width: 100%;
+		accent-color: var(--accent);
+	}
+
+	.pixel-tune-panel select {
+		font: inherit;
+		color: #cbd5e1;
+		background: #0c0f1a;
+		border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+		border-radius: 6px;
+		padding: 0.15rem 0.3rem;
+	}
+
+	.pixel-tune-panel output {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+		color: #94a3b8;
+	}
+
+	.pixel-tune-buttons {
+		display: flex;
+		gap: 0.4rem;
+		margin-top: 0.2rem;
+	}
+
+	.pixel-tune-buttons button {
+		flex: 1;
+		font: inherit;
+		color: #cbd5e1;
+		background: color-mix(in srgb, var(--accent) 12%, transparent);
+		border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+		border-radius: 6px;
+		padding: 0.3rem;
+		cursor: pointer;
+	}
+
+	.pixel-tune-buttons button:hover {
+		color: var(--accent);
+	}
+
+	@media (max-width: 640px) {
+		/* anchored left: the home page can be wider than the screen on phones */
+		.pixel-tune {
+			left: 1rem;
+			right: auto;
+			align-items: flex-start;
+		}
+
+		.pixel-tune-toggle span {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.pixel-video-canvas {
+			display: none;
+		}
+	}
+</style>

@@ -3,7 +3,7 @@ title: 'MyWebsite'
 date: 'May 2026 - Current'
 tech: ['Astro', 'JavaScript', 'CSS']
 description: 'A personal portfolio website featuring project showcases, notes, browser-playable games, and an interactive About page with custom UI and API-driven gaming widgets.'
-image: './cover-grid.jpg'
+image: './cover-home.jpg'
 cardVideo: '/videos/my-website-card.mp4'
 ---
 
@@ -23,7 +23,7 @@ I do graphics and games and knew basically nothing about web dev, so I learned b
 
 The portfolio cards and project pages read from the same MDX frontmatter, so a project's title, tags and description live in one place:
 
-```astro
+```astro title="src/pages/portfolio.astro"
 const projects = new Map(
   (await getCollection('projects')).map((entry) => [entry.slug, entry])
 );
@@ -39,13 +39,13 @@ The About page shows my latest Steam and PlayStation game. Mainly so I can find 
 
 The site is static, but this data has to be live. So the API routes opt out of prerendering and run as Vercel serverless functions instead:
 
-```ts
+```ts title="src/pages/api/*.ts"
 export const prerender = false; // runs per request, not at build time
 ```
 
 **Steam** has an official API, so this one is simple. Ask for one game, and cache the answer for 5 minutes so Steam isn't hit on every page view:
 
-```ts
+```ts title="src/pages/api/steam-recent.ts"
 const url = `.../GetRecentlyPlayedGames/v1/?key=${key}&steamid=${id}&count=1`;
 return new Response(JSON.stringify({ games: list }), {
   headers: { 'Cache-Control': 'public, max-age=300' },
@@ -54,7 +54,7 @@ return new Response(JSON.stringify({ games: list }), {
 
 **PlayStation** has no public API. I use `psn-api`, which goes through Sony's own login flow: an NPSSO cookie becomes an access code, and the access code becomes an access token plus a refresh token. Doing that whole chain on every request would be slow, so the tokens live in a module-level variable. A serverless instance stays warm for a while between requests, and during that time every visitor reuses the same token:
 
-```ts
+```ts title="src/pages/api/psn-recent.ts"
 let auth = null; // survives between requests while the instance is warm
 
 async function getAccessToken(npsso) {
@@ -83,7 +83,7 @@ Click an image to see it bigger.
 
 No library here. It's the browser's built-in `<dialog>` element. `showModal()` puts it in the top layer above everything, dims the page with `::backdrop`, and fires a `cancel` event on Esc, so most of the work is already done:
 
-```js
+```js title="src/layouts/Layout.astro"
 function openZoom(src) {
   dialogImg.src = src;
   document.body.style.overflow = 'hidden'; // stop the page scrolling behind it
@@ -104,7 +104,7 @@ A few details:
 
 Pages have different column widths: text is 40–50rem, notes are wider, and banners are full width. I wanted them to line up and scale together instead of each page doing its own math. So there's one variable:
 
-```css
+```css title="Layout.astro · portfolio/[slug].astro"
 :root { --fluid-width: calc(0.65 * (100vw - 3.5rem)); }
 @media (max-width: 768px) { :root { --fluid-width: 100%; } }
 
@@ -115,7 +115,7 @@ Every column is `min(its max, var(--fluid-width))`. On desktop it's 65% of the w
 
 The footer was trickier. It should be as wide as the page's **text**, not its widest image, or it looks off on every page. So each page tells the layout its text width, and the footer uses that:
 
-```astro
+```astro title="src/pages/portfolio/[slug].astro"
 <Layout textWidth="40rem">  <!-- footer gets --footer-width: 40rem -->
 ```
 
@@ -135,7 +135,7 @@ The cover image runs across the whole window, Steam style, with the title and de
 
 The tricky part is wide screens. A 16:9 cover stretched across an ultrawide monitor looks blurry and gets cropped badly. So the banner actually draws the image twice. The back copy fills the whole width, blurred and darkened. The sharp copy on top stops at 100rem and fades out at its edges, so on a big screen you get a sharp picture in the middle and a soft glow on the sides:
 
-```css
+```css title="src/pages/portfolio/[slug].astro"
 .banner-fill  { width: 100%; filter: blur(40px) brightness(0.6); transform: scale(1.15); }
 .banner-sharp { width: min(100%, 100rem); left: 50%; transform: translateX(-50%); }
 ```
@@ -152,7 +152,7 @@ Not every cover works as a banner though. The Lucky Duckies key art is tall, so 
 
 A cover image is fine, but a few seconds of gameplay says more. So a card can set `cardVideo`, a small muted loop (640x360, about 1 MB) that plays instead of the image. The image becomes its poster, so nothing looks empty while it loads. With ten cards on one page, I didn't want them all playing at once, so each one only plays while it's on screen:
 
-```js
+```js title="src/pages/portfolio.astro"
 new IntersectionObserver((entries) => {
   entries.forEach(({ target: video, isIntersecting }) => {
     isIntersecting ? video.play() : video.pause();
@@ -177,7 +177,7 @@ Markdown images can't do much: no caption, and they're always as wide as the tex
 
 The YouTube one is just an iframe, but a few details matter. It uses `youtube-nocookie.com`, so YouTube doesn't set cookies until you press play. `loading="lazy"` means the player only loads when you scroll near it, which matters because a YouTube embed is way heavier than the rest of the page. And `aspect-ratio: 16 / 9` keeps the box the right shape at any width:
 
-```astro
+```astro title="spell-showdown/index.mdx"
 <Wide caption="The rules video">
   <YouTube id="KR1s1_OIhdY" title="Spell Showdown rules video" />
 </Wide>
@@ -191,7 +191,7 @@ The YouTube one is just an iframe, but a few details matter. It uses `youtube-no
 
 Links like Print & Play, GitHub or a video go in the frontmatter, and show up as buttons under the banner description:
 
-```yaml
+```yaml title="spell-showdown/index.mdx"
 links:
   - { label: 'Print & Play', icon: 'download', url: 'https://drive.google.com/...' }
 team: ['Reagan Wang', 'Meilynn Poma', 'Zixuan Jia']
@@ -220,7 +220,7 @@ Nothing downloads until you press Play. Portal is about 28 MB, and browsers need
 
 - Emscripten looks for the game's `.data` file next to the page, not next to the game, so nothing loaded. `locateFile` points it at the game's folder:
 
-```js
+```js title="src/pages/play/[game].astro"
 window.Module = {
   canvas: canvas,
   locateFile: (file) => `/play/${slug}/${file}`, // .wasm and .data live with the game
@@ -236,11 +236,11 @@ Pages used to load in a system font and then jump to the real one. The two fonts
 
 The cause was `font-display: swap`: show a fallback right away, then swap when the real font arrives. I switched to `block`, which tells the browser to wait for the font instead. I also stopped using the package's CSS and wrote the `@font-face` myself, importing the font file with Vite's `?url` so it gets bundled with a hashed filename like every other asset:
 
-```astro
+```astro title="src/layouts/Layout.astro"
 import atkinsonLatin from '@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2?url';
 ```
 
-```css
+```css title="src/layouts/Layout.astro"
 @font-face {
   font-family: 'Atkinson Hyperlegible Next Variable';
   font-display: block;      /* wait, don't swap */
@@ -251,6 +251,22 @@ import atkinsonLatin from '@fontsource-variable/atkinson-hyperlegible-next/files
 ```
 
 The trade-off: on a slow connection, text stays invisible for a moment (browsers cap it at about 3 seconds). It's worth it here because the font is small. It's split by `unicode-range` into a ~34 KB Latin file and a ~19 KB extended file, and the second one only downloads if a page actually uses those characters.
+
+## Home page background
+
+The home page background is a montage of my projects, but the video itself is never shown. It's a hidden `<video>` that gets uploaded to WebGL2 as a texture every frame. The screen is a grid of cells (about 20,000 on a 1080p screen), each one drawn as a single point, so the whole grid is one draw call. Each cell samples the video at its spot, gets cut down to one of 8 brightness levels, and picks its color from a palette built from the site's accent color. So whatever the clip looks like, it comes out as pixels in the site's colors.
+
+Two details I like. Clips are very different in brightness (Asteroids is mostly black, Portal is mostly white), so each cell subtracts the frame's average brightness first. The average comes for free from the 1×1 mipmap level, so every clip lands at the same exposure. And when the clip changes, a noise value decides which cells flip first, so the new clip sweeps in patch by patch instead of all at once.
+
+```glsl title="src/components/PixelVideoBackground.astro"
+float order = fbm(cuv * vec2(uGrid.x / uGrid.y, 1.0) * 2.2 + uSeed) * 0.9 + 0.5; // when this cell flips
+float local = clamp((uTrans - order * 0.65) / 0.35, 0.0, 1.0);                    // this cell's own progress
+
+float lB = dot(textureLod(uLive, vuv, uLod).rgb, LUMA);         // brightness here
+float aB = dot(textureLod(uLive, vec2(0.5), 12.0).rgb, LUMA);   // whole-frame average (smallest mipmap)
+```
+
+Your mouse leaves a short trail of brighter cells, and the "Tune background" button in the corner opens the sliders I used to pick the defaults. With reduced motion on, or without WebGL2, you just get a static gradient and the video never downloads.
 
 ## Color
 

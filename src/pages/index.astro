@@ -1,26 +1,33 @@
 ---
 import Layout from '../layouts/Layout.astro';
-// 项目展示视频：将视频放到 public/ 下（如 home-bg.mp4），然后设置 videoSrc="/home-bg.mp4"
+import PixelVideoBackground from '../components/PixelVideoBackground.astro';
 ---
 
-<Layout title="Scott Tang – Home" showVideoBackground={true} videoSrc="" showFooter={false}>
+<Layout title="Scott Tang – Home" showVideoBackground={true} showFooter={false}>
+	<PixelVideoBackground
+		slot="background"
+		src="/videos/home-loop.mp4"
+		cuts={[0, 8, 15.9, 20, 23.8, 28.1, 34.1, 37.6, 41.6, 45.7, 53.2]}
+	/>
 	<section class="hero">
 		<div class="hero-main">
 			<p class="eyebrow">Game & Graphics Engineer</p>
 			<h1 class="hero-title"><span class="hero-title-inner">Hi! I&apos;m Scott Tang!</span></h1>
-			<p class="lede">
-				Games, codes, designs. The rest me is in <a href="/about" class="lede-link lede-about">
-					<span class="lede-about-icon" aria-hidden="true">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"></path>
-							<path d="M15 12h.01"></path>
-							<path d="M19.38 6.813A9 9 0 0 1 20.8 10.2a2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"></path>
-							<path d="M9 12h.01"></path>
-						</svg>
-					</span>
-					<span class="lede-about-label">About</span>
-				</a>.
-			</p>
+			<p class="lede">I build games, engines, and graphics.</p>
+			<nav class="hero-nav" aria-label="Main navigation">
+				<a href="/portfolio" class="hero-nav-link">
+					<svg class="hero-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3L11 9.999"/><path d="M15.973 4.027A13 13 0 0 0 5.902 2.373c-1.398.342-1.092 2.158.277 2.601a19.9 19.9 0 0 1 5.822 3.024"/><path d="M16.001 11.999a19.9 19.9 0 0 1 3.024 5.824c.444 1.369 2.26 1.676 2.603.278A13 13 0 0 0 20 8.069"/><path d="M18.352 3.352a1.205 1.205 0 0 0-1.704 0l-5.296 5.296a1.205 1.205 0 0 0 0 1.704l2.296 2.296a1.205 1.205 0 0 0 1.704 0l5.296-5.296a1.205 1.205 0 0 0 0-1.704z"/></svg>
+					<span>Portfolio</span>
+				</a>
+				<a href="/notes" class="hero-nav-link">
+					<svg class="hero-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/><path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/></svg>
+					<span>Notes</span>
+				</a>
+				<a href="/about" class="hero-nav-link">
+					<svg class="hero-nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M15 12h.01"/><path d="M19.38 6.813A9 9 0 0 1 20.8 10.2a2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/><path d="M9 12h.01"/></svg>
+					<span>About</span>
+				</a>
+			</nav>
 			<div class="contact-links" aria-label="Contact links">
 				<a href="https://www.instagram.com/ruiscott_39/" class="contact-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
@@ -41,7 +48,22 @@ import Layout from '../layouts/Layout.astro';
 			flex-direction: column;
 			align-items: flex-start;
 			gap: 1.75rem;
-			max-width: 640px;
+			max-width: 40em;
+			/* everything in the hero is sized in em, so it scales with the window: 16px up to ~1300px wide; title is 50px at 1920 and 60px at 2560 */
+			font-size: clamp(1rem, 0.446rem + 0.558vw, 1.34rem);
+			position: relative;
+			isolation: isolate;
+			text-shadow: 0 2px 10px rgba(12, 15, 26, 0.85);
+		}
+
+		/* soft dark pool behind the text, so a bright clip in the background never washes it out */
+		.hero::before {
+			content: '';
+			position: absolute;
+			inset: -3em -5em;
+			z-index: -1;
+			background: radial-gradient(ellipse closest-side, rgba(12, 15, 26, 0.6), rgba(12, 15, 26, 0.35) 55%, transparent);
+			pointer-events: none;
 		}
 
 		.hero-main {
@@ -50,8 +72,11 @@ import Layout from '../layouts/Layout.astro';
 				'eyebrow'
 				'title'
 				'lede'
+				'nav'
 				'contacts';
-			row-gap: 0.5rem;
+			/* two levels: eyebrow / title / intro sit tight as one block (negative margins below),
+			   then the same larger gap before the nav and before the icons */
+			row-gap: var(--hero-gap, 1.4em);
 			width: 100%;
 		}
 
@@ -61,10 +86,11 @@ import Layout from '../layouts/Layout.astro';
 			text-align: center;
 			margin: 0;
 			padding: 0;
-			font-size: 0.8rem;
+			font-size: 0.8em;
 			text-transform: uppercase;
 			letter-spacing: 0.18em;
-			color: var(--accent);
+			color: var(--accent-light);
+			margin-bottom: -1.45em !important;
 			opacity: 0;
 			transform: translateY(0.7rem);
 			animation: hero-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
@@ -74,7 +100,8 @@ import Layout from '../layouts/Layout.astro';
 			grid-area: title;
 			margin: 0;
 			padding: 0;
-			font-size: clamp(2.2rem, 4vw, 2.8rem);
+			font-size: clamp(2.2em, 4vw, 2.8em);
+			line-height: 1.15;
 			letter-spacing: 0.03em;
 			color: #f1f5f9;
 		}
@@ -93,8 +120,76 @@ import Layout from '../layouts/Layout.astro';
 			margin-left: 0;
 		}
 
+		.hero-nav {
+			grid-area: nav;
+			justify-self: center;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			opacity: 0;
+			transform: translateY(1rem);
+			animation: hero-fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
+		}
+
+		/* same voice as the eyebrow: small, uppercase, spaced out; dots between links */
+		.hero-nav-link {
+			position: relative;
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5em;
+			padding: 0.3em 1.1em;
+			color: #cbd5e1;
+			font-size: 0.85em;
+			font-weight: 600;
+			letter-spacing: 0.18em;
+			text-transform: uppercase;
+			text-decoration: none;
+			transition: color 0.2s ease;
+		}
+
+		.hero-nav-link + .hero-nav-link::before {
+			content: '·';
+			position: absolute;
+			left: -0.15em;
+			color: var(--accent-light);
+			letter-spacing: 0;
+		}
+
+		/* underline that grows from the centre on hover (the right inset skips the trailing letter-spacing) */
+		.hero-nav-link::after {
+			content: '';
+			position: absolute;
+			left: calc(1.1em + 1.5em);
+			right: calc(1.1em + 0.18em);
+			bottom: 0.2em;
+			height: 1px;
+			background: var(--accent-light);
+			transform: scaleX(0);
+			transition: transform 0.2s ease;
+		}
+
+		.hero-nav-icon {
+			color: var(--accent-light);
+			width: 1.2em;
+			height: 1.2em;
+			fill: none;
+			stroke: currentColor;
+			stroke-width: 2;
+			stroke-linecap: round;
+			stroke-linejoin: round;
+		}
+
+		.hero-nav-link:hover {
+			color: #fff;
+		}
+
+		.hero-nav-link:hover::after {
+			transform: scaleX(1);
+		}
+
 		.contact-links {
 			grid-area: contacts;
+			margin-top: -0.2em !important; /* the 2.5em hover boxes pad a little space above the icons */
 			justify-self: center;
 			display: flex;
 			align-items: center;
@@ -110,24 +205,24 @@ import Layout from '../layouts/Layout.astro';
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			width: 40px;
-			height: 40px;
+			width: 2.5em;
+			height: 2.5em;
 			border-radius: 10px;
-			color: #94a3b8;
+			color: #e2e8f0;
 			background: transparent;
 			transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 		}
 
 		.contact-link:hover {
-			color: var(--accent);
-			background: color-mix(in srgb, var(--accent) 12%, transparent);
-			box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
+			color: #fff;
+			background: rgba(255, 255, 255, 0.08);
+			box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
 			transform: translateY(-2px);
 		}
 
 		.contact-link svg {
-			width: 22px;
-			height: 22px;
+			width: 1.4em;
+			height: 1.4em;
 			fill: none;
 			stroke: currentColor;
 			stroke-width: 2;
@@ -137,10 +232,13 @@ import Layout from '../layouts/Layout.astro';
 
 		.lede {
 			grid-area: lede;
-			margin: 0 0 0 0.3rem;
+			margin-top: -0.9em !important; /* tight under the title */
+			margin: 0;
+			justify-self: center;
+			text-align: center; /* centred under the title like everything else, not left-aligned */
 			padding: 0;
 			color: #e2e8f0;
-			font-size: 1.1rem;
+			font-size: 1em;
 			line-height: 1.4;
 			max-width: 44rem;
 			opacity: 0;
@@ -173,55 +271,12 @@ import Layout from '../layouts/Layout.astro';
 			}
 		}
 
-		.lede-link {
-			color: #94a3b8;
-			text-decoration: none;
-			border-bottom: 1px solid rgba(148, 163, 184, 0.4);
-			transition: color 0.2s, border-color 0.2s;
-		}
-
-		.lede-link:hover {
-			color: var(--accent);
-			border-bottom-color: var(--accent);
-		}
-
-		.lede-about {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.35rem;
-			vertical-align: middle;
-			border-bottom: none;
-			font-weight: 700;
-		}
-
-		.lede-about:hover {
-			border-bottom: none;
-		}
-
-		.lede-about-icon {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			width: 1em;
-			height: 1em;
-			transform: translateY(-0.04em);
-		}
-
-		.lede-about-icon svg {
-			width: 100%;
-			height: 100%;
-			fill: none;
-			stroke: currentColor;
-			stroke-width: 2;
-			stroke-linecap: round;
-			stroke-linejoin: round;
-		}
-
 		@media (prefers-reduced-motion: reduce) {
 			.eyebrow,
 			.hero-title-inner,
 			.hero-letter,
 			.lede,
+			.hero-nav,
 			.contact-links {
 				animation: none !important;
 				opacity: 1;

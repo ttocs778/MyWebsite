@@ -164,8 +164,8 @@ for (const [slug, entry] of projects) {
 
 		.portfolio-section-title {
 			margin: 0;
-			width: min(70rem, var(--fluid-width));
-			max-width: 70rem;
+			width: min(80rem, var(--fluid-width));
+			max-width: 80rem;
 			font-size: 1.65rem;
 			line-height: 1.2;
 			font-weight: 700;
@@ -184,16 +184,16 @@ for (const [slug, entry] of projects) {
 			height: 2px;
 			margin: 0.55rem auto 0;
 			border-radius: 999px;
-			background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent) 75%, transparent), color-mix(in srgb, var(--accent) 12%, transparent));
+			background: linear-gradient(90deg, color-mix(in srgb, var(--accent-light) 12%, transparent), color-mix(in srgb, var(--accent-light) 75%, transparent), color-mix(in srgb, var(--accent-light) 12%, transparent));
 		}
 
 		.portfolio-grid {
 			display: grid;
 			grid-template-columns: repeat(2, 1fr);
-			gap: 3rem 3.5rem;
+			gap: 3rem 2.5rem;
 			/* Same width as title row and footer bar */
-			width: min(70rem, var(--fluid-width));
-			max-width: 70rem;
+			width: min(80rem, var(--fluid-width));
+			max-width: 80rem;
 		}
 
 		.portfolio-card {
@@ -234,7 +234,7 @@ for (const [slug, entry] of projects) {
 
 		.portfolio-card:hover .card-title,
 		.portfolio-card:focus-visible .card-title {
-			color: var(--accent-hover);
+			color: var(--accent-light);
 		}
 
 		@media (prefers-reduced-motion: reduce) {
@@ -292,14 +292,14 @@ for (const [slug, entry] of projects) {
 			flex-wrap: wrap;
 			gap: 0 0.75rem;
 			font-size: 0.95rem;
-			color: var(--accent);
+			color: var(--accent-light);
 			letter-spacing: 0.02em;
 		}
 
 		.card-tech-list li + li::before {
 			content: '·';
 			margin-right: 0.75rem;
-			color: color-mix(in srgb, var(--accent) 60%, transparent);
+			color: color-mix(in srgb, var(--accent-light) 60%, transparent);
 		}
 
 		.card-description {

@@ -5,6 +5,7 @@ import mdx from '@astrojs/mdx';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import remarkNotesBreaks from './src/lib/remark-notes-breaks.mjs';
+import codeTitle from './src/lib/shiki-code-title.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,5 +17,7 @@ export default defineConfig({
 		// Math is rendered to HTML at build time; pages only ship KaTeX's CSS.
 		remarkPlugins: [remarkMath, remarkNotesBreaks],
 		rehypePlugins: [rehypeKatex],
+		// ```cpp title="File.cpp" puts a file-name bar above the block
+		shikiConfig: { transformers: [codeTitle()] },
 	},
 });

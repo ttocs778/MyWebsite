@@ -33,7 +33,7 @@ We kept changing the damage, the range, the timing of hits, and sometimes a whol
 
 Each character has a `RoleConfig`, which is a ScriptableObject with one entry per animation. An entry has the skill name, the combo, and a list of what I called "bullets." A bullet isn't really a projectile, it's just a hitbox plus a few settings.
 
-```csharp
+```csharp title="RoleConfig.cs"
 [System.Serializable]
 public class BulletConfig
 {
@@ -78,7 +78,7 @@ The pause menu reads the same config, too. It takes combo strings like `"BBA"` a
 
 Each controller gets its own `PlayerInput`, and my `InputController` turns every button press into a symbol. X, Y, A and B become `'X' 'Y' 'A' 'B'`, and the right stick becomes arrows. The stick needed one extra check, because holding it keeps sending the same direction, and the game would read that as →→→→. So it only sends a direction when the direction *changes*.
 
-```csharp
+```csharp title="InputController.cs"
 if (inputDirection != prevInputDirection)
 {
     if (inputDirection != '_')
@@ -89,7 +89,7 @@ if (inputDirection != prevInputDirection)
 
 **Every skill is a string**, like `"BBA"` for Kage's Phantom Smash, and each one has its own little matcher that remembers how far along you are. If your next button matches, it moves forward, and if it doesn't, it starts over. It also starts over if you wait more than **0.5 seconds** between presses. That number mattered more than I expected, because a shorter window makes every combo harder to pull off.
 
-```csharp
+```csharp title="SkillInputController.cs"
 // Called once per button press, for every skill the character has
 public bool HandleInput(char inputChar)
 {
@@ -146,7 +146,7 @@ To check whether our changes were working, the end screen shows the match time, 
 
 The stats code doesn't touch the fighting code. A character just fires an event when it gets hit, starts a block, blocks something or dies, and `BattleManager` listens for those.
 
-```csharp
+```csharp title="BattleManager.cs"
 role.OnBeHit += () => info.beHitCount++;
 role.OnTryBlock += () => info.tryToBlockCount++;
 role.OnBlockSuccess += () => info.blockSuccessCount++;
@@ -179,7 +179,7 @@ I also made a debug scene just for myself. It plays every character in every ani
 
 The fire arena has six burning traps. When you step on one, you get a `BurningBuff` component that does 5 damage right away and then 5 more every second for 2 seconds. If you step back in while you're still burning, it just resets the timer instead of adding a second buff.
 
-```csharp
+```csharp title="Trap.cs"
 private void OnTriggerEnter2D(Collider2D collision)
 {
     if (collision.TryGetComponent<Role>(out var role))
@@ -204,7 +204,7 @@ The crystals in the ice arena are on the Block layer. Movement does a raycast ag
 
 When someone dies, the camera lowers the loser's weight in the target group down to zero, so it slowly moves in on the winner before the end screen shows up.
 
-```csharp
+```csharp title="CamGroupController.cs"
 while (animTime > 0)
 {
     animTime -= Time.fixedDeltaTime;
