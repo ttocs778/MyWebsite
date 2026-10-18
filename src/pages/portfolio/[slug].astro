@@ -277,6 +277,9 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 
 		.project-content :global(p) {
 			margin: 0 0 1rem;
+			/* justified, with hyphenation so long words don't open up wide gaps between words */
+			text-align: justify;
+			hyphens: auto;
 		}
 
 		.project-content :global(ul),
@@ -427,6 +430,12 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 		@media (prefers-reduced-motion: reduce) {
 			.breadcrumb-parent {
 				transition: none;
+			}
+		}
+		/* phones: lines are too short for justified text (big gaps), so left-align */
+		@media (max-width: 640px) {
+			.project-content :global(p) {
+				text-align: left;
 			}
 		}
 	</style>
