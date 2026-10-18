@@ -15,7 +15,7 @@ import run from './run.mp4';
 import states from './states.mp4';
 import ik from './ik.mp4';
 
-After some development with game engines, I kept wondering how things actually get drawn under the hood. So I started from an empty Win32 window and built this engine on DirectX 11. I want to thank Professor Matthew Whiting for providing the foundational code. It helped a lot. The engine basically recreates the rendering pipeline (from coordinates to the screen), fragment processing (lights, textures, etc.), and also covers a basic animation system (FK, IK), a multithreaded job system, and more.
+After some development with game engines, I kept wondering how things actually get drawn under the hood. So I built this engine on DirectX 11. I want to thank Professor Matthew Whiting for providing the foundational code. It helped a lot. The engine basically recreates the rendering pipeline (from coordinates to the screen), fragment processing (lights, textures, etc.), and also covers a basic animation system (FK, IK), a multithreaded job system, and more.
 
 The whole engine doesn't use any existing engine or rendering library with only DirectXTK to read textures and RapidJSON to read files.
 
