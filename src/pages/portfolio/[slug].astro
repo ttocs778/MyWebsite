@@ -277,9 +277,9 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 
 		.project-content :global(p) {
 			margin: 0 0 1rem;
-			/* justified, with hyphenation so long words don't open up wide gaps between words */
-			text-align: justify;
-			hyphens: auto;
+			/* left-aligned (justify opened big gaps around code names); pretty balances the ragged edge
+			   and avoids a lone word on the last line, where supported */
+			text-wrap: pretty;
 		}
 
 		.project-content :global(ul),
@@ -387,8 +387,6 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 			font-size: 0.9rem;
 			line-height: 1.6;
 			color: var(--muted);
-			text-align: left; /* short credit line: justify would stretch the gaps */
-			hyphens: manual;
 		}
 
 		/* Label in the body font, names in the italic serif */
@@ -432,12 +430,6 @@ const bannerStyle = bannerPosition ? `object-position: ${bannerPosition}` : unde
 		@media (prefers-reduced-motion: reduce) {
 			.breadcrumb-parent {
 				transition: none;
-			}
-		}
-		/* phones: lines are too short for justified text (big gaps), so left-align */
-		@media (max-width: 640px) {
-			.project-content :global(p) {
-				text-align: left;
 			}
 		}
 	</style>
