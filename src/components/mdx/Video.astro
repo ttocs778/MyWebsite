@@ -18,7 +18,7 @@ interface Props {
 const { src, wide = false, tall = false, controls = false } = Astro.props;
 ---
 
-<video class:list={['mdx-video', wide && 'is-wide', tall && 'is-tall']} src={src} muted loop playsinline controls={controls} preload="metadata"></video>
+<video class:list={['mdx-video', wide && 'is-wide', tall && 'is-tall']} src={`${src}#t=0.001`} muted loop playsinline controls={controls} preload="metadata"></video>
 <script is:inline>
 	(function () {
 		var video = document.currentScript.previousElementSibling;
@@ -27,20 +27,21 @@ const { src, wide = false, tall = false, controls = false } = Astro.props;
 			video.controls = true;
 			return;
 		}
+		var refused = function () { video.controls = true; };
 		if (!('IntersectionObserver' in window)) {
-			video.play().catch(function () {});
+			video.play().catch(refused);
 			return;
 		}
 		new IntersectionObserver(function (entries) {
 			entries.forEach(function (entry) {
 				if (entry.isIntersecting) {
 					var playing = video.play();
-					if (playing && playing.catch) playing.catch(function () {});
+					if (playing && playing.catch) playing.catch(refused);
 				} else {
 					video.pause();
 				}
 			});
-		}, { threshold: 0.5 }).observe(video);
+		}, { threshold: 0.25 }).observe(video); // 0.25: tall clips can be bigger than half a phone screen
 	})();
 </script>
 
